@@ -300,10 +300,10 @@
     </section>
 
     <section class="kpis">
-      <div class="kpi"><div class="label">Total Confirmed</div><div class="value" id="kpiConfirmed">R0</div><div class="sub">Loaded from cashflow sheet</div></div>
-      <div class="kpi"><div class="label">Total Forecast</div><div class="value" id="kpiForecast">R0</div><div class="sub">Loaded from cashflow sheet</div></div>
+      <div class="kpi"><div class="label">Total Confirmed</div><div class="value" id="kpiConfirmed">R0</div><div class="sub">Loaded from Budgets sheet</div></div>
+      <div class="kpi"><div class="label">Total Forecast</div><div class="value" id="kpiForecast">R0</div><div class="sub">Loaded from Budgets sheet</div></div>
       <div class="kpi"><div class="label">Projected Budget</div><div class="value" id="kpiProjected">R0</div><div class="sub">Straightline sheet</div></div>
-      <div class="kpi"><div class="label">Straightline Budget</div><div class="value" id="kpiStraight">R0</div><div class="sub">Orders Works Revenue monthly columns</div></div>
+      <div class="kpi"><div class="label">Straightline Budget</div><div class="value" id="kpiStraight">R0</div><div class="sub">Budgets monthly columns</div></div>
       <div class="kpi"><div class="label">Actual Revenue</div><div class="value" id="kpiActual">R0</div><div class="sub">Daily revenue captured</div></div>
     </section>
 
@@ -486,11 +486,12 @@
 
 <script>
 const CONFIG = {
-  CASHFLOW_SHEET_ID: "1X8JvZqdGOPAFhL-H-PemqWHVs5Gk3P3tmrrdeP0SMEA",
-  CASHFLOW_SHEET_NAME: "Budgets",
+  BUDGETS_SHEET_ID: "1X8JvZqdGOPAFhL-H-PemqWHVs5Gk3P3tmrrdeP0SMEA",
+  BUDGETS_SHEET_NAME: "Budgets",
+  BUDGETS_TAB: "Budgets",
   STRAIGHTLINE_SHEET_ID: "1BjnvNUGxXSEUPyv2vuAa0yiwGRE5bea4Ah0kUctseqs",
   STRAIGHTLINE_TAB: "Straightline",
-  WEB_APP_URL: "https://script.google.com/macros/s/AKfycbyuqUhv82HJdlGwwSLEwF8Jk5PRqrGW6vgArbgfYlvyoL8nJ7y0Ba0Z1zRJAnY3p2Pv/exec"
+  WEB_APP_URL: "https://script.google.com/macros/s/AKfycbyXk5UGz-0ECTCbyYBPmvx5cZFex7LYTsuVyzXmRnb__sFB69eYRelIehy2rtzDm8saFQ/exec"
 };
 
 const PROJECT_OPTIONS = [
@@ -604,9 +605,9 @@ function escapeHtml(v){
     .replaceAll("'","&#039;");
 }
 function setDefaults(){
-  document.getElementById("sheetIdLabel").textContent = CONFIG.CASHFLOW_SHEET_ID;
-  document.getElementById("sheetNameLabel").textContent = CONFIG.CASHFLOW_SHEET_NAME;
-  document.getElementById("tabNameLabel").textContent = `${CONFIG.ORDERS_TAB} + ${CONFIG.STRAIGHTLINE_TAB}`;
+  document.getElementById("sheetIdLabel").textContent = CONFIG.BUDGETS_SHEET_ID;
+  document.getElementById("sheetNameLabel").textContent = CONFIG.BUDGETS_SHEET_NAME;
+  document.getElementById("tabNameLabel").textContent = `${CONFIG.BUDGETS_TAB} + ${CONFIG.STRAIGHTLINE_TAB}`;
 
   fillSelect("dailyManager", PM_OPTIONS, "Select manager");
   fillSelect("dailyProject", PROJECT_OPTIONS, "Select project");
