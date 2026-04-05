@@ -6,1040 +6,155 @@
   <title>Executive Revenue & Cashflow Dashboard</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
-    :root{
-      --bg:#f1f5f9;
-      --card:#ffffff;
-      --text:#0f172a;
-      --muted:#64748b;
-      --line:#e2e8f0;
-      --soft:#f8fafc;
-      --primary:#0f172a;
-      --success-bg:#dcfce7;
-      --success:#15803d;
-      --warn-bg:#fef3c7;
-      --warn:#b45309;
-      --danger-bg:#fee2e2;
-      --danger:#b91c1c;
-      --shadow:0 10px 30px rgba(15,23,42,.06);
-      --radius:24px;
-    }
-    *{box-sizing:border-box}
-    body{
-      margin:0;
-      font-family:Inter,Segoe UI,Arial,sans-serif;
-      background:var(--bg);
-      color:var(--text);
-    }
-    .container{
-      max-width:1400px;
-      margin:0 auto;
-      padding:24px;
-    }
-    .hero,.card{
-      background:var(--card);
-      border:1px solid var(--line);
-      border-radius:32px;
-      box-shadow:var(--shadow);
-    }
-    .hero{padding:28px}
-    .hero-top{
-      display:flex;
-      justify-content:space-between;
-      gap:20px;
-      flex-wrap:wrap;
-      align-items:flex-start;
-    }
-    .eyebrow{
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
-      padding:8px 14px;
-      border-radius:999px;
-      border:1px solid var(--line);
-      background:var(--soft);
-      font-size:12px;
-      text-transform:uppercase;
-      letter-spacing:.18em;
-      color:var(--muted);
-      font-weight:700;
-    }
-    h1{
-      margin:16px 0 8px;
-      font-size:40px;
-      line-height:1.1;
-    }
-    .muted{color:var(--muted)}
-    .controls{
-      display:grid;
-      grid-template-columns:1fr auto;
-      gap:12px;
-      min-width:340px;
-      flex:1;
-      max-width:560px;
-    }
-    input,select,button,textarea{
-      width:100%;
-      border:1px solid var(--line);
-      border-radius:18px;
-      padding:13px 14px;
-      font:inherit;
-      background:#fff;
-    }
-    input,select,textarea{background:var(--soft)}
-    button{
-      background:var(--primary);
-      color:#fff;
-      cursor:pointer;
-      font-weight:700;
-      transition:.2s ease;
-    }
-    button:hover{opacity:.92}
-    button.secondary{
-      background:#fff;
-      color:var(--text);
-      border:1px solid var(--line);
-    }
-    .msg{
-      margin-top:14px;
-      padding:14px 16px;
-      border-radius:18px;
-      font-size:14px;
-      display:none;
-    }
-    .msg.show{display:block}
-    .msg.ok{background:#ecfdf5;border:1px solid #a7f3d0;color:#065f46}
-    .msg.err{background:#fef2f2;border:1px solid #fecaca;color:#991b1b}
-    .kpis{
-      display:grid;
-      grid-template-columns:repeat(5,1fr);
-      gap:16px;
-      margin-top:22px;
-    }
-    .kpi{
-      padding:22px;
-      border-radius:28px;
-      background:linear-gradient(180deg,#fff,#f8fafc);
-      border:1px solid var(--line);
-      box-shadow:var(--shadow);
-    }
-    .kpi .label{font-size:14px;color:var(--muted);font-weight:600}
-    .kpi .value{font-size:30px;font-weight:800;margin-top:10px}
-    .kpi .sub{font-size:12px;color:var(--muted);margin-top:6px}
-    .tabs{
-      margin-top:24px;
-      display:grid;
-      grid-template-columns:repeat(4,1fr);
-      background:#dfe7f1;
-      border-radius:20px;
-      padding:5px;
-      gap:6px;
-    }
-    .tab-btn{
-      border:none;
-      border-radius:16px;
-      background:transparent;
-      color:var(--text);
-      padding:13px 14px;
-      font-weight:700;
-    }
-    .tab-btn.active{
-      background:#fff;
-      box-shadow:var(--shadow);
-    }
-    .tab-pane{display:none;margin-top:22px}
-    .tab-pane.active{display:block}
-    .grid-2{display:grid;grid-template-columns:1.1fr .9fr;gap:18px}
-    .grid-3{display:grid;grid-template-columns:2fr 1fr;gap:18px}
-    .split-2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
-    .card{padding:22px}
-    .card-title{
-      font-size:20px;
-      font-weight:800;
-      margin:0 0 18px;
-    }
-    .table-wrap{
-      overflow:auto;
-      border:1px solid var(--line);
-      border-radius:24px;
-      background:#fff;
-    }
-    table{
-      width:100%;
-      border-collapse:collapse;
-      min-width:920px;
-    }
-    th,td{
-      padding:14px 16px;
-      border-bottom:1px solid var(--line);
-      text-align:left;
-      font-size:14px;
-      white-space:nowrap;
-    }
-    th{
-      background:var(--soft);
-      color:var(--muted);
-      text-transform:uppercase;
-      letter-spacing:.06em;
-      font-size:12px;
-    }
-    td.right,th.right{text-align:right}
-    .form-grid{
-      display:grid;
-      grid-template-columns:repeat(2,1fr);
-      gap:16px;
-    }
-    .form-grid-4{
-      display:grid;
-      grid-template-columns:repeat(4,1fr);
-      gap:16px;
-    }
-    .field label{
-      display:block;
-      margin-bottom:8px;
-      font-size:14px;
-      font-weight:700;
-      color:#475569;
-    }
-    .actions{
-      display:flex;
-      gap:12px;
-      flex-wrap:wrap;
-      margin-top:8px;
-    }
-    .pill{
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
-      padding:7px 10px;
-      border-radius:999px;
-      font-weight:700;
-      font-size:12px;
-      border:1px solid transparent;
-    }
-    .good{background:var(--success-bg);color:var(--success);border-color:#bbf7d0}
-    .mid{background:var(--warn-bg);color:var(--warn);border-color:#fde68a}
-    .bad{background:var(--danger-bg);color:var(--danger);border-color:#fecaca}
-    .progress-block{
-      border:1px solid var(--line);
-      background:var(--soft);
-      border-radius:24px;
-      padding:16px;
-      margin-bottom:14px;
-    }
-    .progress-head{
-      display:flex;
-      justify-content:space-between;
-      gap:12px;
-      align-items:flex-start;
-    }
-    .progress-bar{
-      height:12px;
-      background:#e2e8f0;
-      border-radius:999px;
-      overflow:hidden;
-      margin-top:12px;
-    }
-    .progress-fill{
-      height:100%;
-      background:var(--primary);
-      border-radius:999px;
-      width:0%;
-    }
-    .months{
-      display:grid;
-      grid-template-columns:repeat(4,1fr);
-      gap:14px;
-    }
-    .section-note{
-      font-size:12px;
-      color:var(--muted);
-      margin-top:-8px;
-      margin-bottom:14px;
-    }
-    .incident-card{
-      border:1px solid var(--line);
-      background:var(--soft);
-      border-radius:24px;
-      padding:16px;
-      margin-bottom:12px;
-    }
-    canvas{max-width:100%}
-    @media (max-width:1200px){
-      .kpis{grid-template-columns:repeat(2,1fr)}
-      .grid-3,.grid-2,.split-2{grid-template-columns:1fr}
-      .form-grid-4,.months{grid-template-columns:repeat(2,1fr)}
-    }
-    @media (max-width:700px){
-      .container{padding:14px}
-      h1{font-size:30px}
-      .controls{grid-template-columns:1fr}
-      .tabs{grid-template-columns:1fr 1fr}
-      .kpis,.form-grid,.form-grid-4,.months{grid-template-columns:1fr}
-    }
+    :root{--bg:#f1f5f9;--card:#ffffff;--text:#0f172a;--muted:#64748b;--line:#e2e8f0;--soft:#f8fafc;--primary:#0f172a;--success-bg:#dcfce7;--success:#15803d;--warn-bg:#fef3c7;--warn:#b45309;--danger-bg:#fee2e2;--danger:#b91c1c;--shadow:0 10px 30px rgba(15,23,42,.06)}
+    *{box-sizing:border-box} body{margin:0;font-family:Inter,Segoe UI,Arial,sans-serif;background:var(--bg);color:var(--text)}
+    .container{max-width:1400px;margin:0 auto;padding:24px}.hero,.card{background:var(--card);border:1px solid var(--line);border-radius:32px;box-shadow:var(--shadow)}.hero{padding:28px}
+    .hero-top{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;align-items:flex-start}.eyebrow{display:inline-flex;align-items:center;gap:8px;padding:8px 14px;border-radius:999px;border:1px solid var(--line);background:var(--soft);font-size:12px;text-transform:uppercase;letter-spacing:.18em;color:var(--muted);font-weight:700}
+    h1{margin:16px 0 8px;font-size:40px;line-height:1.1}.muted{color:var(--muted)}.controls{display:grid;grid-template-columns:1fr auto;gap:12px;min-width:340px;flex:1;max-width:560px}
+    input,select,button{width:100%;border:1px solid var(--line);border-radius:18px;padding:13px 14px;font:inherit;background:#fff}input,select{background:var(--soft)}
+    button{background:var(--primary);color:#fff;cursor:pointer;font-weight:700;transition:.2s ease}button:hover{opacity:.92}button.secondary{background:#fff;color:var(--text);border:1px solid var(--line)}
+    .msg{margin-top:14px;padding:14px 16px;border-radius:18px;font-size:14px;display:none}.msg.show{display:block}.msg.ok{background:#ecfdf5;border:1px solid #a7f3d0;color:#065f46}.msg.err{background:#fef2f2;border:1px solid #fecaca;color:#991b1b}
+    .kpis{display:grid;grid-template-columns:repeat(6,1fr);gap:16px;margin-top:22px}.kpi{padding:22px;border-radius:28px;background:linear-gradient(180deg,#fff,#f8fafc);border:1px solid var(--line);box-shadow:var(--shadow)}
+    .kpi .label{font-size:14px;color:var(--muted);font-weight:600}.kpi .value{font-size:28px;font-weight:800;margin-top:10px}.kpi .sub{font-size:12px;color:var(--muted);margin-top:6px}
+    .tabs{margin-top:24px;display:grid;grid-template-columns:repeat(4,1fr);background:#dfe7f1;border-radius:20px;padding:5px;gap:6px}.tab-btn{border:none;border-radius:16px;background:transparent;color:var(--text);padding:13px 14px;font-weight:700}.tab-btn.active{background:#fff;box-shadow:var(--shadow)}
+    .tab-pane{display:none;margin-top:22px}.tab-pane.active{display:block}.grid-2{display:grid;grid-template-columns:1.1fr .9fr;gap:18px}.grid-3{display:grid;grid-template-columns:2fr 1fr;gap:18px}.split-2{display:grid;grid-template-columns:1fr 1fr;gap:18px}.card{padding:22px}.card-title{font-size:20px;font-weight:800;margin:0 0 18px}
+    .table-wrap{overflow:auto;border:1px solid var(--line);border-radius:24px;background:#fff}table{width:100%;border-collapse:collapse;min-width:920px}th,td{padding:14px 16px;border-bottom:1px solid var(--line);text-align:left;font-size:14px;white-space:nowrap}th{background:var(--soft);color:var(--muted);text-transform:uppercase;letter-spacing:.06em;font-size:12px}td.right,th.right{text-align:right}
+    .form-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}.form-grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}.field label{display:block;margin-bottom:8px;font-size:14px;font-weight:700;color:#475569}.actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:8px}
+    .pill{display:inline-flex;align-items:center;justify-content:center;padding:7px 10px;border-radius:999px;font-weight:700;font-size:12px;border:1px solid transparent}.good{background:var(--success-bg);color:var(--success);border-color:#bbf7d0}.mid{background:var(--warn-bg);color:var(--warn);border-color:#fde68a}.bad{background:var(--danger-bg);color:var(--danger);border-color:#fecaca}
+    .progress-block{border:1px solid var(--line);background:var(--soft);border-radius:24px;padding:16px;margin-bottom:14px}.progress-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}.progress-bar{height:12px;background:#e2e8f0;border-radius:999px;overflow:hidden;margin-top:12px}.progress-fill{height:100%;background:var(--primary);border-radius:999px;width:0%}
+    .months{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}.section-note{font-size:12px;color:var(--muted);margin-top:-8px;margin-bottom:14px}.incident-card{border:1px solid var(--line);background:var(--soft);border-radius:24px;padding:16px;margin-bottom:12px}
+    @media (max-width:1200px){.kpis{grid-template-columns:repeat(2,1fr)} .grid-3,.grid-2,.split-2{grid-template-columns:1fr} .form-grid-4,.months{grid-template-columns:repeat(2,1fr)}}
+    @media (max-width:700px){.container{padding:14px} h1{font-size:30px} .controls{grid-template-columns:1fr} .tabs{grid-template-columns:1fr 1fr} .kpis,.form-grid,.form-grid-4,.months{grid-template-columns:1fr}}
   </style>
 </head>
 <body>
-  <div class="container">
-    <section class="hero">
-      <div class="hero-top">
-        <div>
-          <div class="eyebrow">Revenue reporting tool</div>
-          <h1>Executive Revenue & Cashflow Dashboard</h1>
-          <div class="muted">
-            Connected to Google Sheet <strong id="sheetIdLabel"></strong>,
-            sheet <strong id="sheetNameLabel"></strong>,
-            tab <strong id="tabNameLabel"></strong>.
-          </div>
-        </div>
-        <div class="controls">
-          <input id="globalSearch" placeholder="Search PM, project or category..." />
-          <button id="refreshBtn">Refresh data</button>
-        </div>
+<div class="container">
+  <section class="hero">
+    <div class="hero-top">
+      <div>
+        <div class="eyebrow">Revenue reporting tool</div>
+        <h1>Executive Revenue & Cashflow Dashboard</h1>
+        <div class="muted">Orders sheet <strong id="ordersIdLabel"></strong> • Revenue sheet <strong id="revenueIdLabel"></strong></div>
       </div>
-      <div id="messageBox" class="msg"></div>
-    </section>
-
-    <section class="kpis">
-      <div class="kpi"><div class="label">Total Confirmed</div><div class="value" id="kpiConfirmed">R0</div><div class="sub">Loaded from Budgets sheet</div></div>
-      <div class="kpi"><div class="label">Total Forecast</div><div class="value" id="kpiForecast">R0</div><div class="sub">Loaded from Budgets sheet</div></div>
-      <div class="kpi"><div class="label">Projected Budget</div><div class="value" id="kpiProjected">R0</div><div class="sub">Straightline sheet</div></div>
-      <div class="kpi"><div class="label">Straightline Budget</div><div class="value" id="kpiStraight">R0</div><div class="sub">Budgets monthly columns</div></div>
-      <div class="kpi"><div class="label">Actual Revenue</div><div class="value" id="kpiActual">R0</div><div class="sub">Daily revenue captured</div></div>
-    </section>
-
-    <div class="tabs">
-      <button class="tab-btn active" data-tab="executive">Executive dashboard</button>
-      <button class="tab-btn" data-tab="daily">Daily revenue input</button>
-      <button class="tab-btn" data-tab="projects">New project input</button>
-      <button class="tab-btn" data-tab="performance">Performance tables</button>
+      <div class="controls">
+        <input id="globalSearch" placeholder="Search PM, project or category..." />
+        <button id="refreshBtn">Refresh data</button>
+      </div>
     </div>
+    <div id="messageBox" class="msg"></div>
+  </section>
 
-    <section id="tab-executive" class="tab-pane active">
-      <div class="grid-3">
-        <div class="card">
-          <h2 class="card-title">Actual vs projected vs straightline</h2>
-          <div id="mainChartWrap" style="height:280px;position:relative">
-            <canvas id="mainChart"></canvas>
-          </div>
-        </div>
-        <div class="card">
-          <h2 class="card-title">Variance view</h2>
-          <div class="progress-block">
-            <div class="muted">Variance vs projected</div>
-            <div style="font-size:32px;font-weight:800;margin-top:8px" id="varProjectedPercent">0.0%</div>
-            <div style="margin-top:12px"><span id="varProjectedAmt" class="pill bad">R0</span></div>
-          </div>
-          <div class="progress-block">
-            <div class="muted">Variance vs straightline</div>
-            <div style="font-size:32px;font-weight:800;margin-top:8px" id="varStraightPercent">0.0%</div>
-            <div style="margin-top:12px"><span id="varStraightAmt" class="pill bad">R0</span></div>
-          </div>
-        </div>
-      </div>
+  <section class="kpis">
+    <div class="kpi"><div class="label">Total Confirmed</div><div class="value" id="kpiConfirmed">R0</div><div class="sub">Orders • confirmed rows</div></div>
+    <div class="kpi"><div class="label">Total Forecast</div><div class="value" id="kpiForecast">R0</div><div class="sub">Orders • forecast rows</div></div>
+    <div class="kpi"><div class="label">MTD</div><div class="value" id="kpiMTD">R0</div><div class="sub">Current month revenue</div></div>
+    <div class="kpi"><div class="label">Group YTD</div><div class="value" id="kpiYTD">R0</div><div class="sub">All revenue to date</div></div>
+    <div class="kpi"><div class="label">BTYD</div><div class="value" id="kpiBTYD">R0</div><div class="sub">Confirmed - YTD</div></div>
+    <div class="kpi"><div class="label">Straightline Budget</div><div class="value" id="kpiStraight">R0</div><div class="sub">Current month orders column</div></div>
+  </section>
 
-      <div class="split-2" style="margin-top:18px">
-        <div class="card">
-          <h2 class="card-title">Divisional performance at a glance</h2>
-          <div class="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>Division</th>
-                  <th class="right">Actual</th>
-                  <th class="right">Projected</th>
-                  <th class="right">Straightline</th>
-                  <th class="right">Vs Proj</th>
-                  <th class="right">Vs SL</th>
-                </tr>
-              </thead>
-              <tbody id="divisionBody"></tbody>
-            </table>
-          </div>
-        </div>
-        <div class="card">
-          <h2 class="card-title">PM performance at a glance</h2>
-          <div class="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>PM</th>
-                  <th class="right">Actual</th>
-                  <th class="right">Projected</th>
-                  <th class="right">Straightline</th>
-                  <th class="right">Vs Proj</th>
-                  <th class="right">Vs SL</th>
-                </tr>
-              </thead>
-              <tbody id="pmBody"></tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section id="tab-daily" class="tab-pane">
-      <div class="grid-2">
-        <div class="card">
-          <h2 class="card-title">Daily revenue input</h2>
-          <div class="form-grid">
-            <div class="field"><label>Date</label><input type="date" id="dailyDate"></div>
-            <div class="field"><label>Manager</label><select id="dailyManager"></select></div>
-            <div class="field"><label>Project name</label><select id="dailyProject"></select></div>
-            <div class="field"><label>Category</label><select id="dailyCategory"></select></div>
-            <div class="field"><label>Actual today revenue</label><input type="number" id="dailyActual" placeholder="0"></div>
-            <div class="field"><label>Monthly budget</label><input type="number" id="dailyMonthlyBudget" placeholder="Enter first time, then remembered"></div>
-            <div class="field"><label>Incidents</label><input type="number" min="0" id="dailyIncidents" value="0"></div>
-            <div class="field"><label>Daily budget</label><input id="dailyBudget" readonly></div>
-          </div>
-          <div class="actions">
-            <button id="saveDailyBtn">Save daily revenue</button>
-            <button class="secondary" id="clearDailyBtn">Clear form</button>
-          </div>
-        </div>
-        <div class="card">
-          <h2 class="card-title">Progress and variance</h2>
-          <div id="progressBlocks"></div>
-        </div>
-      </div>
-
-      <div class="card" style="margin-top:18px">
-        <h2 class="card-title">Recent daily revenue entries</h2>
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Date</th>
-                <th>Manager</th>
-                <th>Project</th>
-                <th>Category</th>
-                <th class="right">Actual</th>
-                <th class="right">Monthly budget</th>
-                <th class="right">Daily budget</th>
-                <th class="right">Incidents</th>
-              </tr>
-            </thead>
-            <tbody id="dailyEntriesBody"></tbody>
-          </table>
-        </div>
-      </div>
-    </section>
-
-    <section id="tab-projects" class="tab-pane">
-      <div class="card">
-        <h2 class="card-title">Enter new project</h2>
-        <div class="form-grid-4">
-          <div class="field"><label>Date</label><input type="date" id="projDate"></div>
-          <div class="field"><label>Project name</label><select id="projName"></select></div>
-          <div class="field"><label>Category</label><select id="projCategory"></select></div>
-          <div class="field"><label>Project manager</label><select id="projManager"></select></div>
-          <div class="field"><label>Margin %</label><input type="number" id="projMargin"></div>
-          <div class="field"><label>Budget</label><input type="number" id="projBudget"></div>
-          <div class="field"><label>Start date</label><input type="date" id="projStart"></div>
-          <div class="field"><label>Finish date</label><input type="date" id="projFinish"></div>
-        </div>
-
-        <h3 style="margin:24px 0 8px">Budget spread by month</h3>
-        <div class="section-note">The monthly spread total should match the project budget.</div>
-        <div class="months" id="spreadMonths"></div>
-
-        <div class="actions">
-          <button id="saveProjectBtn">Save project</button>
-          <button class="secondary" id="clearProjectBtn">Clear form</button>
-        </div>
-      </div>
-
-      <div class="card" style="margin-top:18px">
-        <h2 class="card-title">Saved projects</h2>
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Date</th>
-                <th>Project</th>
-                <th>Category</th>
-                <th>Manager</th>
-                <th class="right">Margin</th>
-                <th class="right">Budget</th>
-                <th>Start</th>
-                <th>Finish</th>
-              </tr>
-            </thead>
-            <tbody id="projectsBody"></tbody>
-          </table>
-        </div>
-      </div>
-    </section>
-
-    <section id="tab-performance" class="tab-pane">
-      <div class="split-2">
-        <div class="card">
-          <h2 class="card-title">PM progress bars</h2>
-          <div id="pmProgressList"></div>
-        </div>
-        <div class="card">
-          <h2 class="card-title">Incident view</h2>
-          <div id="incidentList"></div>
-        </div>
-      </div>
-    </section>
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="executive">Executive dashboard</button>
+    <button class="tab-btn" data-tab="daily">Daily revenue input</button>
+    <button class="tab-btn" data-tab="projects">New project input</button>
+    <button class="tab-btn" data-tab="performance">Performance tables</button>
   </div>
 
+  <section id="tab-executive" class="tab-pane active">
+    <div class="grid-3">
+      <div class="card"><h2 class="card-title">MTD vs projected vs straightline</h2><div style="height:280px;position:relative"><canvas id="mainChart"></canvas></div></div>
+      <div class="card">
+        <h2 class="card-title">Variance view</h2>
+        <div class="progress-block"><div class="muted">MTD vs projected</div><div style="font-size:32px;font-weight:800;margin-top:8px" id="varProjectedPercent">0.0%</div><div style="margin-top:12px"><span id="varProjectedAmt" class="pill bad">R0</span></div></div>
+        <div class="progress-block"><div class="muted">MTD vs straightline</div><div style="font-size:32px;font-weight:800;margin-top:8px" id="varStraightPercent">0.0%</div><div style="margin-top:12px"><span id="varStraightAmt" class="pill bad">R0</span></div></div>
+      </div>
+    </div>
+    <div class="split-2" style="margin-top:18px">
+      <div class="card"><h2 class="card-title">Divisional performance at a glance</h2><div class="table-wrap"><table><thead><tr><th>Division</th><th class="right">MTD</th><th class="right">Projected</th><th class="right">Straightline</th><th class="right">Vs Proj</th><th class="right">Vs SL</th></tr></thead><tbody id="divisionBody"></tbody></table></div></div>
+      <div class="card"><h2 class="card-title">PM performance at a glance</h2><div class="table-wrap"><table><thead><tr><th>PM</th><th class="right">MTD</th><th class="right">Projected</th><th class="right">Straightline</th><th class="right">Vs Proj</th><th class="right">Vs SL</th></tr></thead><tbody id="pmBody"></tbody></table></div></div>
+    </div>
+  </section>
+
+  <section id="tab-daily" class="tab-pane">
+    <div class="grid-2">
+      <div class="card">
+        <h2 class="card-title">Daily revenue input</h2>
+        <div class="form-grid">
+          <div class="field"><label>Date</label><input type="date" id="dailyDate"></div>
+          <div class="field"><label>Manager</label><select id="dailyManager"></select></div>
+          <div class="field"><label>Project name</label><select id="dailyProject"></select></div>
+          <div class="field"><label>Category</label><select id="dailyCategory"></select></div>
+          <div class="field"><label>Actual daily revenue</label><input type="number" id="dailyActual" placeholder="0"></div>
+          <div class="field"><label>Monthly Projected Budget</label><input type="number" id="dailyMonthlyBudget" placeholder="Enter first time, then remembered"></div>
+          <div class="field"><label>Incidents</label><input type="number" min="0" id="dailyIncidents" value="0"></div>
+          <div class="field"><label>Daily budget</label><input id="dailyBudget" readonly></div>
+        </div>
+        <div class="actions"><button id="saveDailyBtn">Save daily revenue</button><button class="secondary" id="clearDailyBtn">Clear form</button></div>
+      </div>
+      <div class="card"><h2 class="card-title">Progress and variance</h2><div id="progressBlocks"></div></div>
+    </div>
+    <div class="card" style="margin-top:18px"><h2 class="card-title">Recent daily revenue entries</h2><div class="table-wrap"><table><thead><tr><th>Date</th><th>Manager</th><th>Project</th><th>Category</th><th class="right">Actual</th><th class="right">Monthly Projected</th><th class="right">Daily budget</th><th class="right">Incidents</th></tr></thead><tbody id="dailyEntriesBody"></tbody></table></div></div>
+  </section>
+
+  <section id="tab-projects" class="tab-pane">
+    <div class="card">
+      <h2 class="card-title">New project input</h2>
+      <div class="form-grid-4">
+        <div class="field"><label>Date</label><input type="date" id="projDate"></div>
+        <div class="field"><label>Project name</label><select id="projName"></select></div>
+        <div class="field"><label>Category</label><select id="projCategory"></select></div>
+        <div class="field"><label>Project manager</label><select id="projManager"></select></div>
+        <div class="field"><label>Margin %</label><input type="number" id="projMargin"></div>
+        <div class="field"><label>Budget</label><input type="number" id="projBudget"></div>
+        <div class="field"><label>Start date</label><input type="date" id="projStart"></div>
+        <div class="field"><label>Finish date</label><input type="date" id="projFinish"></div>
+      </div>
+      <h3 style="margin:24px 0 8px">Budget spread by month</h3>
+      <div class="section-note">The monthly spread total should match the project budget.</div>
+      <div class="months" id="spreadMonths"></div>
+      <div class="actions"><button id="saveProjectBtn">Save project</button><button class="secondary" id="clearProjectBtn">Clear form</button></div>
+    </div>
+    <div class="card" style="margin-top:18px"><h2 class="card-title">Saved projects</h2><div class="table-wrap"><table><thead><tr><th>Date</th><th>Project</th><th>Category</th><th>Manager</th><th class="right">Margin</th><th class="right">Budget</th><th>Start</th><th>Finish</th></tr></thead><tbody id="projectsBody"></tbody></table></div></div>
+  </section>
+
+  <section id="tab-performance" class="tab-pane">
+    <div class="split-2">
+      <div class="card"><h2 class="card-title">PM progress bars</h2><div id="pmProgressList"></div></div>
+      <div class="card"><h2 class="card-title">Incident view</h2><div id="incidentList"></div></div>
+    </div>
+  </section>
+</div>
+
 <script>
-const CONFIG = {
-  BUDGETS_SHEET_ID: "1X8JvZqdGOPAFhL-H-PemqWHVs5Gk3P3tmrrdeP0SMEA",
-  BUDGETS_SHEET_NAME: "Budgets",
-  BUDGETS_TAB: "Budgets",
-  STRAIGHTLINE_SHEET_ID: "1BjnvNUGxXSEUPyv2vuAa0yiwGRE5bea4Ah0kUctseqs",
-  STRAIGHTLINE_TAB: "Straightline",
-  WEB_APP_URL: "https://script.google.com/macros/s/AKfycbyzDvnjHt5GVDtMraGk0n1ybSBW3g8Rc8TtvBn_urr4IPeB_dnpq-DFKNfk92NxEYLb/exec"
-};
-
-const PROJECT_OPTIONS = [
-  "DBSA Generators","DBSA Rooiwal","Joe Gqabi","Temba","Midvaal","Coega","KZN General Buildings","Tshwane",
-  "Public Works Limpopo","Limpopo Eskom Substation Ephraim Mogale","Naizna","Cape Town","COT Streetlights",
-  "COT Electrification","COT Metering","COE Streetlights","Msunduzi E50","Msunduzi Streetlights","Msunduzi E33",
-  "Msunduzi E47","Moqhaka Streetlights","Moqhaka Metering","Centlec CD11","Centlec Transformers CD32",
-  "Centlec CD45","Midvaal Mechanical","Eskom SPU","Eskom FSOU Substation","Eskom ECOU","Eskom LOU General Buildings",
-  "Eskom KZN Minor Reticulation","Randwest Electrical","Randwest Roads & Stormwater","Randwest Water rand sanitation",
-  "Randwest Bulk","RAL","Stellenbosch","Liquid ECPG","Liquid ECSOD","Liquid Gauteng SOD","Telkom","MTN","Centlec",
-  "Eskom Harvard","City Power","Umhlathuze Municipality","Eskom WC","COE Buildings","Midvaal Water","Midvaal Electricity",
-  "Uthukela","Kgetleng River","Ray Nkonyeni Facility","Ray Nkonyeni Electrical Material","Ray Nkonyeni Mast",
-  "Ray Nkonyeni Meter Reading","Ramotshere Electrical Supplies","Newcastle Substations","Ubuntu","IDT North West Buildings",
-  "Amajuba Generator","uPhongolo","Abaquilisi Battery Supplies","Abaquilisi Streetlights"
-];
-
-const PM_OPTIONS = [
-  "Moses","Johan","Siyanda","Dave","James","Rayman","Timothy","Roads Site Agent COT","Stanley",
-  "Civil Site Agent","Roads Site Agent CPT","Brian","Tony","Stanley (Aqua)","Govern","Graham","Ronald",
-  "Petros","Elroy","Mesh","Vusi","Tinotenda","Sydney","Andrew","Phillip","Moeti"
-];
-
-const CATEGORY_OPTIONS = [
-  "Electrical","Civil","Buildings","Telecoms","Water","Mechanical","Substations","Metering","Streetlights","Supplies","General"
-];
-
-const MONTH_NAMES = ["Jul","Aug","Sep","Oct","Nov","Dec","Jan","Feb","Mar","Apr","May","Jun"];
-
-const state = {
-  summary: { totalConfirmed:0, totalForecast:0, straightlineBudget:0, projectedBudget:0, actualRevenue:0 },
-  divisionRows: [],
-  pmRows: [],
-  dailyEntries: [],
-  projectRows: [],
-  timelineRows: []
-};
-
-let mainChart;
-
-function todayISO(){ return new Date().toISOString().slice(0,10); }
-
-function money(v){
-  return new Intl.NumberFormat("en-ZA",{style:"currency",currency:"ZAR",maximumFractionDigits:0}).format(Number(v||0));
-}
-function num(v){
-  const n = Number(String(v ?? "").replace(/,/g,""));
-  return Number.isFinite(n) ? n : 0;
-}
-function percent(actual,target){
-  const a=num(actual), t=num(target);
-  return t ? (a/t)*100 : 0;
-}
-function variance(actual,target){ return num(actual)-num(target); }
-function variancePercent(actual,target){
-  const t=num(target);
-  return t ? (variance(actual,target)/t)*100 : 0;
-}
-function daysInMonth(dateString){
-  const d = new Date(dateString || new Date());
-  return new Date(d.getFullYear(), d.getMonth()+1, 0).getDate();
-}
-function monthKey(dateString){
-  const d = new Date(dateString || new Date());
-  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`;
-}
-function budgetStorageKey(projectName,dateString){
-  return `monthly-budget::${projectName}::${monthKey(dateString)}`;
-}
-function getStoredMonthlyBudget(projectName,dateString){
-  if(!projectName) return "";
-  return localStorage.getItem(budgetStorageKey(projectName,dateString)) || "";
-}
-function setStoredMonthlyBudget(projectName,dateString,monthlyBudget){
-  if(!projectName) return;
-  localStorage.setItem(budgetStorageKey(projectName,dateString), String(monthlyBudget || ""));
-}
-function pillClass(score){
-  if(score >= 100) return "pill good";
-  if(score >= 80) return "pill mid";
-  return "pill bad";
-}
-function buildChartRows(summary, timeline=[]){
-  if(timeline && timeline.length) return timeline;
-  return [
-    { label:"Daily", projected:summary.projectedBudget/22, straightline:summary.straightlineBudget/22, actual:summary.actualRevenue/22 },
-    { label:"Weekly", projected:summary.projectedBudget/4.33, straightline:summary.straightlineBudget/4.33, actual:summary.actualRevenue/4.33 },
-    { label:"Monthly", projected:summary.projectedBudget, straightline:summary.straightlineBudget, actual:summary.actualRevenue },
-    { label:"Quarterly", projected:summary.projectedBudget*3, straightline:summary.straightlineBudget*3, actual:summary.actualRevenue*3 }
-  ];
-}
-function showMessage(text,type="ok"){
-  const box = document.getElementById("messageBox");
-  box.textContent = text;
-  box.className = `msg show ${type === "err" ? "err" : "ok"}`;
-}
-function clearMessage(){
-  const box = document.getElementById("messageBox");
-  box.textContent = "";
-  box.className = "msg";
-}
-function fillSelect(selectId, options, placeholder){
-  const el = document.getElementById(selectId);
-  el.innerHTML = `<option value="">${placeholder}</option>` + options.map(o=>`<option value="${escapeHtml(o)}">${escapeHtml(o)}</option>`).join("");
-}
-function escapeHtml(v){
-  return String(v)
-    .replaceAll("&","&amp;")
-    .replaceAll("<","&lt;")
-    .replaceAll(">","&gt;")
-    .replaceAll('"',"&quot;")
-    .replaceAll("'","&#039;");
-}
-function setDefaults(){
-  document.getElementById("sheetIdLabel").textContent = CONFIG.BUDGETS_SHEET_ID;
-  document.getElementById("sheetNameLabel").textContent = CONFIG.BUDGETS_SHEET_NAME;
-  document.getElementById("tabNameLabel").textContent = `${CONFIG.BUDGETS_TAB} + ${CONFIG.STRAIGHTLINE_TAB}`;
-
-  fillSelect("dailyManager", PM_OPTIONS, "Select manager");
-  fillSelect("dailyProject", PROJECT_OPTIONS, "Select project");
-  fillSelect("dailyCategory", CATEGORY_OPTIONS, "Select category");
-  fillSelect("projName", PROJECT_OPTIONS, "Select project");
-  fillSelect("projCategory", CATEGORY_OPTIONS, "Category");
-  fillSelect("projManager", PM_OPTIONS, "Select PM");
-
-  document.getElementById("dailyDate").value = todayISO();
-  document.getElementById("projDate").value = todayISO();
-
-  const spread = document.getElementById("spreadMonths");
-  spread.innerHTML = MONTH_NAMES.map(month => `
-    <div class="field">
-      <label>${month}</label>
-      <input type="number" data-month="${month}" class="spread-input" placeholder="0">
-    </div>`).join("");
-}
-function getDailyForm(){
-  return {
-    date: document.getElementById("dailyDate").value,
-    manager: document.getElementById("dailyManager").value,
-    projectName: document.getElementById("dailyProject").value,
-    category: document.getElementById("dailyCategory").value,
-    actualTodayRevenue: document.getElementById("dailyActual").value,
-    monthlyBudget: document.getElementById("dailyMonthlyBudget").value,
-    incidents: document.getElementById("dailyIncidents").value || "0"
-  };
-}
-function setDailyForm(data){
-  document.getElementById("dailyDate").value = data.date || todayISO();
-  document.getElementById("dailyManager").value = data.manager || "";
-  document.getElementById("dailyProject").value = data.projectName || "";
-  document.getElementById("dailyCategory").value = data.category || "";
-  document.getElementById("dailyActual").value = data.actualTodayRevenue || "";
-  document.getElementById("dailyMonthlyBudget").value = data.monthlyBudget || "";
-  document.getElementById("dailyIncidents").value = data.incidents ?? "0";
-  updateDailyBudgetAndProgress();
-}
-function clearDailyForm(){
-  setDailyForm({ date:todayISO(), manager:"", projectName:"", category:"", actualTodayRevenue:"", monthlyBudget:"", incidents:"0" });
-}
-function getProjectForm(){
-  const spread = {};
-  document.querySelectorAll(".spread-input").forEach(input => spread[input.dataset.month] = input.value);
-  return {
-    date: document.getElementById("projDate").value,
-    projectName: document.getElementById("projName").value,
-    category: document.getElementById("projCategory").value,
-    projectManager: document.getElementById("projManager").value,
-    margin: document.getElementById("projMargin").value,
-    budget: document.getElementById("projBudget").value,
-    startDate: document.getElementById("projStart").value,
-    finishDate: document.getElementById("projFinish").value,
-    spread
-  };
-}
-function clearProjectForm(){
-  document.getElementById("projDate").value = todayISO();
-  document.getElementById("projName").value = "";
-  document.getElementById("projCategory").value = "";
-  document.getElementById("projManager").value = "";
-  document.getElementById("projMargin").value = "";
-  document.getElementById("projBudget").value = "";
-  document.getElementById("projStart").value = "";
-  document.getElementById("projFinish").value = "";
-  document.querySelectorAll(".spread-input").forEach(i => i.value = "");
-}
-function updateDailyBudgetAndProgress(){
-  const form = getDailyForm();
-  if(form.projectName && !form.monthlyBudget){
-    const remembered = getStoredMonthlyBudget(form.projectName, form.date);
-    if(remembered){
-      document.getElementById("dailyMonthlyBudget").value = remembered;
-      form.monthlyBudget = remembered;
-    }
-  }
-
-  const monthly = num(form.monthlyBudget);
-  const dailyBudget = monthly / Math.max(daysInMonth(form.date), 1);
-  document.getElementById("dailyBudget").value = money(dailyBudget);
-
-  const weeklyTarget = dailyBudget * 7;
-  const monthlyTarget = monthly;
-  const quarterlyTarget = monthly * 3;
-  const actual = num(form.actualTodayRevenue);
-
-  const rows = [
-    {label:"Daily", actual:actual, target:dailyBudget},
-    {label:"Weekly", actual:actual*7, target:weeklyTarget},
-    {label:"Monthly", actual:actual*daysInMonth(form.date), target:monthlyTarget},
-    {label:"Quarterly", actual:actual*daysInMonth(form.date)*3, target:quarterlyTarget}
-  ];
-
-  document.getElementById("progressBlocks").innerHTML = rows.map(item => {
-    const score = percent(item.actual,item.target);
-    return `
-      <div class="progress-block">
-        <div class="progress-head">
-          <div>
-            <div style="font-weight:800">${item.label} target progress</div>
-            <div class="muted" style="font-size:12px;margin-top:4px">Actual ${money(item.actual)} vs Target ${money(item.target)}</div>
-          </div>
-          <span class="${pillClass(score)}">${score.toFixed(1)}%</span>
-        </div>
-        <div class="progress-bar"><div class="progress-fill" style="width:${Math.max(0, Math.min(score, 100))}%"></div></div>
-        <div class="muted" style="font-size:12px;margin-top:10px">Projected variance ${variancePercent(item.actual,item.target).toFixed(1)}%</div>
-      </div>`;
-  }).join("");
-}
-function renderSummary(){
-  document.getElementById("kpiConfirmed").textContent = money(state.summary.totalConfirmed);
-  document.getElementById("kpiForecast").textContent = money(state.summary.totalForecast);
-  document.getElementById("kpiProjected").textContent = money(state.summary.projectedBudget);
-  document.getElementById("kpiStraight").textContent = money(state.summary.straightlineBudget);
-  document.getElementById("kpiActual").textContent = money(state.summary.actualRevenue);
-
-  const varProjPct = variancePercent(state.summary.actualRevenue, state.summary.projectedBudget);
-  const varSlPct = variancePercent(state.summary.actualRevenue, state.summary.straightlineBudget);
-  const scoreProj = percent(state.summary.actualRevenue, state.summary.projectedBudget);
-  const scoreSl = percent(state.summary.actualRevenue, state.summary.straightlineBudget);
-
-  document.getElementById("varProjectedPercent").textContent = `${varProjPct.toFixed(1)}%`;
-  document.getElementById("varProjectedAmt").textContent = money(variance(state.summary.actualRevenue, state.summary.projectedBudget));
-  document.getElementById("varProjectedAmt").className = pillClass(scoreProj);
-
-  document.getElementById("varStraightPercent").textContent = `${varSlPct.toFixed(1)}%`;
-  document.getElementById("varStraightAmt").textContent = money(variance(state.summary.actualRevenue, state.summary.straightlineBudget));
-  document.getElementById("varStraightAmt").className = pillClass(scoreSl);
-}
-function renderMainChart(){
-  const rows = buildChartRows(state.summary, state.timelineRows);
-  const ctx = document.getElementById("mainChart").getContext("2d");
-  if(mainChart) mainChart.destroy();
-  mainChart = new Chart(ctx, {
-    type:"bar",
-    data:{
-      labels: rows.map(r => r.label),
-      datasets:[
-        { label:"Projected Budget", data: rows.map(r => num(r.projected)), maxBarThickness: 36 },
-        { label:"Straightline Budget", data: rows.map(r => num(r.straightline)), maxBarThickness: 36 },
-        { type:"line", label:"Actual Revenue", data: rows.map(r => num(r.actual)), tension:.35, borderWidth:3, fill:false, pointRadius:4 }
-      ]
-    },
-    options:{
-      responsive:true,
-      maintainAspectRatio:false,
-      layout:{ padding:{ top:8, right:12, bottom:4, left:4 } },
-      scales:{ y:{ beginAtZero:true, ticks:{ callback:(v)=> `${Math.round(v/1000)}k` } }, x:{ ticks:{ maxRotation:0, minRotation:0 } } },
-      plugins:{ tooltip:{ callbacks:{ label:(ctx)=> `${ctx.dataset.label}: ${money(ctx.raw)}` } } }
-    }
-  });
-}
-function renderTables(){
-  const search = document.getElementById("globalSearch").value.toLowerCase();
-
-  document.getElementById("divisionBody").innerHTML = state.divisionRows.length
-    ? state.divisionRows.map(item => {
-        const projScore = percent(item.actual, item.projectedBudget);
-        const slScore = percent(item.actual, item.straightlineBudget);
-        return `<tr>
-          <td><strong>${escapeHtml(item.division || "")}</strong></td>
-          <td class="right">${money(item.actual)}</td>
-          <td class="right">${money(item.projectedBudget)}</td>
-          <td class="right">${money(item.straightlineBudget)}</td>
-          <td class="right"><span class="${pillClass(projScore)}">${variancePercent(item.actual,item.projectedBudget).toFixed(1)}%</span></td>
-          <td class="right"><span class="${pillClass(slScore)}">${variancePercent(item.actual,item.straightlineBudget).toFixed(1)}%</span></td>
-        </tr>`;
-      }).join("")
-    : `<tr><td colspan="6" class="muted">No division rows loaded yet.</td></tr>`;
-
-  const pmRows = state.pmRows.filter(row => `${row.pm||""} ${row.project||""} ${row.category||""}`.toLowerCase().includes(search));
-  document.getElementById("pmBody").innerHTML = pmRows.length
-    ? pmRows.map(item => {
-        const projScore = percent(item.actual, item.projectedBudget);
-        const slScore = percent(item.actual, item.straightlineBudget);
-        return `<tr>
-          <td><strong>${escapeHtml(item.pm || "")}</strong></td>
-          <td class="right">${money(item.actual)}</td>
-          <td class="right">${money(item.projectedBudget)}</td>
-          <td class="right">${money(item.straightlineBudget)}</td>
-          <td class="right"><span class="${pillClass(projScore)}">${variancePercent(item.actual,item.projectedBudget).toFixed(1)}%</span></td>
-          <td class="right"><span class="${pillClass(slScore)}">${variancePercent(item.actual,item.straightlineBudget).toFixed(1)}%</span></td>
-        </tr>`;
-      }).join("")
-    : `<tr><td colspan="6" class="muted">No PM rows loaded yet.</td></tr>`;
-
-  document.getElementById("dailyEntriesBody").innerHTML = state.dailyEntries.length
-    ? state.dailyEntries.map(row => `<tr>
-        <td>${escapeHtml(row.date || "")}</td>
-        <td>${escapeHtml(row.manager || "")}</td>
-        <td><strong>${escapeHtml(row.projectName || "")}</strong></td>
-        <td>${escapeHtml(row.category || "")}</td>
-        <td class="right">${money(row.actualTodayRevenue || row.actual)}</td>
-        <td class="right">${money(row.monthlyBudget)}</td>
-        <td class="right">${money(row.dailyBudget)}</td>
-        <td class="right">${escapeHtml(row.incidents ?? "0")}</td>
-      </tr>`).join("")
-    : `<tr><td colspan="8" class="muted">No daily revenue entries yet.</td></tr>`;
-
-  document.getElementById("projectsBody").innerHTML = state.projectRows.length
-    ? state.projectRows.map(row => `<tr>
-        <td>${escapeHtml(row.date || "")}</td>
-        <td><strong>${escapeHtml(row.projectName || "")}</strong></td>
-        <td>${escapeHtml(row.category || "")}</td>
-        <td>${escapeHtml(row.projectManager || "")}</td>
-        <td class="right">${escapeHtml(row.margin || "")}%</td>
-        <td class="right">${money(row.budget)}</td>
-        <td>${escapeHtml(row.startDate || "")}</td>
-        <td>${escapeHtml(row.finishDate || "")}</td>
-      </tr>`).join("")
-    : `<tr><td colspan="8" class="muted">No projects saved yet.</td></tr>`;
-
-  document.getElementById("pmProgressList").innerHTML = pmRows.length
-    ? pmRows.map(row => {
-        const score = percent(row.actual, row.projectedBudget);
-        return `<div class="progress-block">
-          <div class="progress-head">
-            <div>
-              <div style="font-weight:800">${escapeHtml(row.pm || "")}</div>
-              <div class="muted" style="font-size:12px;margin-top:4px">Actual ${money(row.actual)} vs Monthly target ${money(row.projectedBudget)}</div>
-            </div>
-            <span class="${pillClass(score)}">${score.toFixed(1)}%</span>
-          </div>
-          <div class="progress-bar"><div class="progress-fill" style="width:${Math.max(0,Math.min(score,100))}%"></div></div>
-          <div class="muted" style="font-size:12px;margin-top:10px">Straightline variance ${variancePercent(row.actual,row.straightlineBudget).toFixed(1)}%</div>
-        </div>`;
-      }).join("")
-    : `<div class="muted">No PM performance rows available.</div>`;
-
-  document.getElementById("incidentList").innerHTML = state.dailyEntries.length
-    ? state.dailyEntries.slice(0,10).map(row => `
-      <div class="incident-card">
-        <div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start">
-          <div>
-            <div style="font-weight:800">${escapeHtml(row.projectName || "")}</div>
-            <div class="muted" style="font-size:12px;margin-top:4px">${escapeHtml(row.date || "")} • ${escapeHtml(row.manager || "")}</div>
-          </div>
-          <span class="${Number(row.incidents || 0) > 0 ? 'pill bad' : 'pill good'}">${escapeHtml(row.incidents || "0")} incidents</span>
-        </div>
-      </div>`).join("")
-    : `<div class="muted">No incident records yet.</div>`;
-}
-function renderAll(){
-  renderSummary();
-  renderMainChart();
-  renderTables();
-  updateDailyBudgetAndProgress();
-}
-async function loadDashboard(){
-  clearMessage();
-  try{
-    if(!CONFIG.WEB_APP_URL || CONFIG.WEB_APP_URL.includes("PASTE_YOUR")){
-      loadLocalPreviewData();
-      showMessage("Preview mode loaded. Paste your deployed Google Apps Script web app URL into CONFIG.WEB_APP_URL for live Google Sheets syncing.", "ok");
-      renderAll();
-      return;
-    }
-
-    const url = `${CONFIG.WEB_APP_URL}?action=getDashboardData`;
-    const res = await fetch(url);
-    const data = await res.json();
-
-    state.summary = {
-      totalConfirmed: num(data.totalConfirmed),
-      totalForecast: num(data.totalForecast),
-      straightlineBudget: num(data.straightlineBudget),
-      projectedBudget: num(data.projectedBudget),
-      actualRevenue: num(data.actualRevenue)
-    };
-    state.divisionRows = Array.isArray(data.divisionPerformance) ? data.divisionPerformance : [];
-    state.pmRows = Array.isArray(data.pmPerformance) ? data.pmPerformance : [];
-    state.dailyEntries = Array.isArray(data.dailyRevenueEntries) ? data.dailyRevenueEntries : [];
-    state.projectRows = Array.isArray(data.projects) ? data.projects : [];
-    state.timelineRows = Array.isArray(data.timeline) ? data.timeline : [];
-    renderAll();
-  }catch(err){
-    showMessage(err.message || "Failed to load dashboard.", "err");
-  }
-}
-function loadLocalPreviewData(){
-  const localDaily = JSON.parse(localStorage.getItem("dashboardDailyEntries") || "[]");
-  const localProjects = JSON.parse(localStorage.getItem("dashboardProjects") || "[]");
-
-  state.summary = {
-    totalConfirmed: 185000000,
-    totalForecast: 214000000,
-    straightlineBudget: 16200000,
-    projectedBudget: 18900000,
-    actualRevenue: localDaily.reduce((s,r)=>s+num(r.actualTodayRevenue || r.actual), 13750000)
-  };
-
-  state.divisionRows = [
-    { division:"Electrical", actual:6450000, projectedBudget:7200000, straightlineBudget:6800000 },
-    { division:"Civil", actual:3820000, projectedBudget:4100000, straightlineBudget:3600000 },
-    { division:"Buildings", actual:2280000, projectedBudget:3000000, straightlineBudget:2600000 },
-    { division:"Telecoms", actual:1200000, projectedBudget:1500000, straightlineBudget:1400000 }
-  ];
-
-  state.pmRows = [
-    { pm:"Moses", actual:2450000, projectedBudget:2800000, straightlineBudget:2500000, project:"DBSA Generators", category:"Electrical" },
-    { pm:"Brian", actual:2310000, projectedBudget:2400000, straightlineBudget:2250000, project:"COT Electrification", category:"Electrical" },
-    { pm:"Timothy", actual:1840000, projectedBudget:2100000, straightlineBudget:1900000, project:"Public Works Limpopo", category:"Buildings" },
-    { pm:"Stanley", actual:1620000, projectedBudget:1900000, straightlineBudget:1750000, project:"Centlec CD11", category:"Electrical" },
-    { pm:"Phillip", actual:1280000, projectedBudget:1700000, straightlineBudget:1400000, project:"Ray Nkonyeni Facility", category:"Civil" }
-  ];
-
-  state.dailyEntries = localDaily;
-  state.projectRows = localProjects;
-  state.timelineRows = [];
-}
-async function saveDailyRevenue(){
-  clearMessage();
-  try{
-    const form = getDailyForm();
-    if(!form.manager || !form.projectName || !form.date) throw new Error("Fill in manager, date and project name.");
-    if(!num(form.monthlyBudget) && !getStoredMonthlyBudget(form.projectName, form.date)){
-      throw new Error("Enter the monthly budget at least once for this project and month.");
-    }
-
-    const rememberedBudget = num(form.monthlyBudget) || num(getStoredMonthlyBudget(form.projectName, form.date));
-    setStoredMonthlyBudget(form.projectName, form.date, rememberedBudget);
-    const dailyBudget = rememberedBudget / Math.max(daysInMonth(form.date),1);
-
-    if(!CONFIG.WEB_APP_URL || CONFIG.WEB_APP_URL.includes("PASTE_YOUR")){
-      const entry = { ...form, monthlyBudget: rememberedBudget, dailyBudget, achievement: percent(form.actualTodayRevenue, dailyBudget) };
-      state.dailyEntries.unshift(entry);
-      localStorage.setItem("dashboardDailyEntries", JSON.stringify(state.dailyEntries));
-      state.summary.actualRevenue = state.dailyEntries.reduce((s,r)=>s+num(r.actualTodayRevenue || r.actual), 0);
-      renderAll();
-      showMessage("Daily revenue saved locally in preview mode. Add your Apps Script URL to save to Google Sheets.", "ok");
-      return;
-    }
-
-    const payload = {
-      action:"saveDailyRevenue",
-      ...form,
-      monthlyBudget: rememberedBudget,
-      dailyBudget
-    };
-
-    const res = await fetch(CONFIG.WEB_APP_URL, {
-      method:"POST",
-      headers:{ "Content-Type":"application/json" },
-      body:JSON.stringify(payload)
-    });
-    const result = await res.json();
-    if(!result.success) throw new Error(result.error || "Could not save daily revenue.");
-    showMessage("Daily revenue saved successfully.", "ok");
-    loadDashboard();
-  }catch(err){
-    showMessage(err.message || "Save failed.", "err");
-  }
-}
-async function saveProject(){
-  clearMessage();
-  try{
-    const form = getProjectForm();
-    if(!form.projectName || !form.projectManager || !form.startDate || !form.finishDate){
-      throw new Error("Complete project name, project manager, start date and finish date.");
-    }
-
-    const spreadTotal = MONTH_NAMES.reduce((sum,m)=>sum+num(form.spread[m]), 0);
-    const totalBudget = num(form.budget);
-    if(totalBudget && spreadTotal && Math.round(totalBudget) !== Math.round(spreadTotal)){
-      throw new Error("Monthly spread total must match the project budget.");
-    }
-
-    if(!CONFIG.WEB_APP_URL || CONFIG.WEB_APP_URL.includes("PASTE_YOUR")){
-      state.projectRows.unshift({ ...form, spreadTotal });
-      localStorage.setItem("dashboardProjects", JSON.stringify(state.projectRows));
-      renderTables();
-      showMessage("Project saved locally in preview mode. Add your Apps Script URL to save to Google Sheets.", "ok");
-      return;
-    }
-
-    const res = await fetch(CONFIG.WEB_APP_URL, {
-      method:"POST",
-      headers:{ "Content-Type":"application/json" },
-      body:JSON.stringify({
-        action:"saveProject",
-        ...form
-      })
-    });
-    const result = await res.json();
-    if(!result.success) throw new Error(result.error || "Could not save project.");
-    showMessage("Project saved successfully.", "ok");
-    loadDashboard();
-  }catch(err){
-    showMessage(err.message || "Could not save project.", "err");
-  }
-}
-function bindEvents(){
-  document.querySelectorAll(".tab-btn").forEach(btn => {
-    btn.addEventListener("click", () => {
-      document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
-      document.querySelectorAll(".tab-pane").forEach(p => p.classList.remove("active"));
-      btn.classList.add("active");
-      document.getElementById(`tab-${btn.dataset.tab}`).classList.add("active");
-    });
-  });
-
-  document.getElementById("refreshBtn").addEventListener("click", loadDashboard);
-  document.getElementById("globalSearch").addEventListener("input", renderTables);
-
-  ["dailyDate","dailyProject","dailyActual","dailyMonthlyBudget","dailyIncidents","dailyManager","dailyCategory"].forEach(id => {
-    document.getElementById(id).addEventListener("input", updateDailyBudgetAndProgress);
-    document.getElementById(id).addEventListener("change", updateDailyBudgetAndProgress);
-  });
-
-  document.getElementById("dailyProject").addEventListener("change", () => {
-    const form = getDailyForm();
-    const remembered = getStoredMonthlyBudget(form.projectName, form.date);
-    if(remembered) document.getElementById("dailyMonthlyBudget").value = remembered;
-    updateDailyBudgetAndProgress();
-  });
-
-  document.getElementById("dailyMonthlyBudget").addEventListener("change", () => {
-    const form = getDailyForm();
-    if(form.projectName && form.monthlyBudget) setStoredMonthlyBudget(form.projectName, form.date, form.monthlyBudget);
-  });
-
-  document.getElementById("saveDailyBtn").addEventListener("click", saveDailyRevenue);
-  document.getElementById("clearDailyBtn").addEventListener("click", clearDailyForm);
-  document.getElementById("saveProjectBtn").addEventListener("click", saveProject);
-  document.getElementById("clearProjectBtn").addEventListener("click", clearProjectForm);
-}
-document.addEventListener("DOMContentLoaded", () => {
-  setDefaults();
-  bindEvents();
-  loadDashboard();
-});
+const CONFIG={ORDERS_SHEET_ID:"1qXz55Luti1s-0dh8qCPwxupX14kCNhtyWPJF6dpUdF0",ORDERS_SHEET_NAME:"Orders",REVENUE_SHEET_ID:"1wl599p4871pR2tOZmIuq44pdDy6N2PggKrmMrfD8wv0",REVENUE_SHEET_NAME:"Revenue",WEB_APP_URL:"https://script.google.com/macros/s/AKfycbwF_payyNPzm6nD3stchWtdStpnKxoYJ485ari0oUYTWavrGARx7onSwqBqtSsXgultJg/exec"};
+const PROJECT_OPTIONS=["DBSA Generators","DBSA Rooiwal","Joe Gqabi","Temba","Midvaal","Coega","KZN General Buildings","Tshwane","Public Works Limpopo","Limpopo Eskom Substation Ephraim Mogale","Naizna","Cape Town","COT Streetlights","COT Electrification","COT Metering","COE Streetlights","Msunduzi E50","Msunduzi Streetlights","Msunduzi E33","Msunduzi E47","Moqhaka Streetlights","Moqhaka Metering","Centlec CD11","Centlec Transformers CD32","Centlec CD45","Midvaal Mechanical","Eskom SPU","Eskom FSOU Substation","Eskom ECOU","Eskom LOU General Buildings","Eskom KZN Minor Reticulation","Randwest Electrical","Randwest Roads & Stormwater","Randwest Water rand sanitation","Randwest Bulk","RAL","Stellenbosch","Liquid ECPG","Liquid ECSOD","Liquid Gauteng SOD","Telkom","MTN","Centlec","Eskom Harvard","City Power","Umhlathuze Municipality","Eskom WC","COE Buildings","Midvaal Water","Midvaal Electricity","Uthukela","Kgetleng River","Ray Nkonyeni Facility","Ray Nkonyeni Electrical Material","Ray Nkonyeni Mast","Ray Nkonyeni Meter Reading","Ramotshere Electrical Supplies","Newcastle Substations","Ubuntu","IDT North West Buildings","Amajuba Generator","uPhongolo","Abaquilisi Battery Supplies","Abaquilisi Streetlights"];
+const PM_OPTIONS=["Moses","Johan","Siyanda","Dave","James","Rayman","Timothy","Roads Site Agent COT","Stanley","Civil Site Agent","Roads Site Agent CPT","Brian","Tony","Stanley (Aqua)","Govern","Graham","Ronald","Petros","Elroy","Mesh","Vusi","Tinotenda","Sydney","Andrew","Phillip","Moeti"];
+const CATEGORY_OPTIONS=["Electrical","Civil","Buildings","Telecoms","Water","Mechanical","Substations","Metering","Streetlights","Supplies","General"];
+const MONTH_FIELDS=["Mar26","Apr26","May26","Jun26","Jul26","Aug26","Sep26","Oct26","Nov26","Dec26","Jan27","Feb27"];
+const state={summary:{totalConfirmed:0,totalForecast:0,mtd:0,groupYTD:0,btyd:0,straightlineBudget:0,projectedBudget:0},divisionRows:[],pmRows:[],dailyEntries:[],projectRows:[],timelineRows:[]}; let mainChart;
+function todayISO(){return new Date().toISOString().slice(0,10)} function money(v){return new Intl.NumberFormat("en-ZA",{style:"currency",currency:"ZAR",maximumFractionDigits:0}).format(Number(v||0))} function num(v){const cleaned=String(v??"").replace(/[R,\s]/g,""); const n=Number(cleaned); return Number.isFinite(n)?n:0}
+function percent(actual,target){const a=num(actual),t=num(target); return t?(a/t)*100:0} function variance(actual,target){return num(actual)-num(target)} function variancePercent(actual,target){const t=num(target); return t?(variance(actual,target)/t)*100:0}
+function daysInMonth(dateString){const d=new Date(dateString||new Date()); return new Date(d.getFullYear(),d.getMonth()+1,0).getDate()} function monthKey(dateString){const d=new Date(dateString||new Date()); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`}
+function budgetStorageKey(projectName,manager,dateString){return `monthly-projected-budget::${projectName}::${manager}::${monthKey(dateString)}`} function getStoredMonthlyBudget(projectName,manager,dateString){if(!projectName||!manager) return ""; return localStorage.getItem(budgetStorageKey(projectName,manager,dateString))||""} function setStoredMonthlyBudget(projectName,manager,dateString,monthlyBudget){if(!projectName||!manager) return; localStorage.setItem(budgetStorageKey(projectName,manager,dateString),String(monthlyBudget||""))}
+function pillClass(score){if(score>=100) return "pill good"; if(score>=80) return "pill mid"; return "pill bad"} function showMessage(text,type="ok"){const box=document.getElementById("messageBox"); box.textContent=text; box.className=`msg show ${type==="err"?"err":"ok"}`} function clearMessage(){const box=document.getElementById("messageBox"); box.textContent=""; box.className="msg"}
+function escapeHtml(v){return String(v).replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;")} function fillSelect(selectId,options,placeholder){const el=document.getElementById(selectId); el.innerHTML=`<option value="">${placeholder}</option>`+options.map(o=>`<option value="${escapeHtml(o)}">${escapeHtml(o)}</option>`).join("")}
+function setDefaults(){document.getElementById("ordersIdLabel").textContent=`${CONFIG.ORDERS_SHEET_ID} / ${CONFIG.ORDERS_SHEET_NAME}`; document.getElementById("revenueIdLabel").textContent=`${CONFIG.REVENUE_SHEET_ID} / ${CONFIG.REVENUE_SHEET_NAME}`; fillSelect("dailyManager",PM_OPTIONS,"Select manager"); fillSelect("dailyProject",PROJECT_OPTIONS,"Select project"); fillSelect("dailyCategory",CATEGORY_OPTIONS,"Select category"); fillSelect("projName",PROJECT_OPTIONS,"Select project"); fillSelect("projCategory",CATEGORY_OPTIONS,"Category"); fillSelect("projManager",PM_OPTIONS,"Select PM"); document.getElementById("dailyDate").value=todayISO(); document.getElementById("projDate").value=todayISO(); document.getElementById("spreadMonths").innerHTML=MONTH_FIELDS.map(month=>`<div class="field"><label>${month}</label><input type="number" data-month="${month}" class="spread-input" placeholder="0"></div>`).join("")}
+function getDailyForm(){return {date:document.getElementById("dailyDate").value,manager:document.getElementById("dailyManager").value,projectName:document.getElementById("dailyProject").value,category:document.getElementById("dailyCategory").value,actualTodayRevenue:document.getElementById("dailyActual").value,monthlyProjectedBudget:document.getElementById("dailyMonthlyBudget").value,incidents:document.getElementById("dailyIncidents").value||"0"}}
+function setDailyForm(data){document.getElementById("dailyDate").value=data.date||todayISO(); document.getElementById("dailyManager").value=data.manager||""; document.getElementById("dailyProject").value=data.projectName||""; document.getElementById("dailyCategory").value=data.category||""; document.getElementById("dailyActual").value=data.actualTodayRevenue||""; document.getElementById("dailyMonthlyBudget").value=data.monthlyProjectedBudget||""; document.getElementById("dailyIncidents").value=data.incidents??"0"; updateDailyBudgetAndProgress()}
+function clearDailyForm(){setDailyForm({date:todayISO(),manager:"",projectName:"",category:"",actualTodayRevenue:"",monthlyProjectedBudget:"",incidents:"0"})}
+function getProjectForm(){const spread={}; document.querySelectorAll(".spread-input").forEach(input=>spread[input.dataset.month]=input.value); return {date:document.getElementById("projDate").value,projectName:document.getElementById("projName").value,category:document.getElementById("projCategory").value,projectManager:document.getElementById("projManager").value,margin:document.getElementById("projMargin").value,budget:document.getElementById("projBudget").value,startDate:document.getElementById("projStart").value,finishDate:document.getElementById("projFinish").value,spread}}
+function clearProjectForm(){document.getElementById("projDate").value=todayISO(); document.getElementById("projName").value=""; document.getElementById("projCategory").value=""; document.getElementById("projManager").value=""; document.getElementById("projMargin").value=""; document.getElementById("projBudget").value=""; document.getElementById("projStart").value=""; document.getElementById("projFinish").value=""; document.querySelectorAll(".spread-input").forEach(i=>i.value="")}
+function updateDailyBudgetAndProgress(){const form=getDailyForm(); if(form.projectName&&form.manager&&!form.monthlyProjectedBudget){const remembered=getStoredMonthlyBudget(form.projectName,form.manager,form.date); if(remembered){document.getElementById("dailyMonthlyBudget").value=remembered; form.monthlyProjectedBudget=remembered}} const monthly=num(form.monthlyProjectedBudget); const dailyBudget=monthly/Math.max(daysInMonth(form.date),1); document.getElementById("dailyBudget").value=money(dailyBudget); const rows=[{label:"Daily",actual:num(form.actualTodayRevenue),target:dailyBudget},{label:"Weekly",actual:num(form.actualTodayRevenue)*7,target:dailyBudget*7},{label:"Monthly",actual:num(form.actualTodayRevenue)*daysInMonth(form.date),target:monthly},{label:"Quarterly",actual:num(form.actualTodayRevenue)*daysInMonth(form.date)*3,target:monthly*3}]; document.getElementById("progressBlocks").innerHTML=rows.map(item=>{const score=percent(item.actual,item.target); return `<div class="progress-block"><div class="progress-head"><div><div style="font-weight:800">${item.label} target progress</div><div class="muted" style="font-size:12px;margin-top:4px">Actual ${money(item.actual)} vs Target ${money(item.target)}</div></div><span class="${pillClass(score)}">${score.toFixed(1)}%</span></div><div class="progress-bar"><div class="progress-fill" style="width:${Math.max(0,Math.min(score,100))}%"></div></div><div class="muted" style="font-size:12px;margin-top:10px">Projected variance ${variancePercent(item.actual,item.target).toFixed(1)}%</div></div>`}).join("")}
+function renderSummary(){document.getElementById("kpiConfirmed").textContent=money(state.summary.totalConfirmed); document.getElementById("kpiForecast").textContent=money(state.summary.totalForecast); document.getElementById("kpiMTD").textContent=money(state.summary.mtd); document.getElementById("kpiYTD").textContent=money(state.summary.groupYTD); document.getElementById("kpiBTYD").textContent=money(state.summary.btyd); document.getElementById("kpiStraight").textContent=money(state.summary.straightlineBudget); const varProjPct=variancePercent(state.summary.mtd,state.summary.projectedBudget); const varSlPct=variancePercent(state.summary.mtd,state.summary.straightlineBudget); document.getElementById("varProjectedPercent").textContent=`${varProjPct.toFixed(1)}%`; document.getElementById("varProjectedAmt").textContent=money(variance(state.summary.mtd,state.summary.projectedBudget)); document.getElementById("varProjectedAmt").className=pillClass(percent(state.summary.mtd,state.summary.projectedBudget)); document.getElementById("varStraightPercent").textContent=`${varSlPct.toFixed(1)}%`; document.getElementById("varStraightAmt").textContent=money(variance(state.summary.mtd,state.summary.straightlineBudget)); document.getElementById("varStraightAmt").className=pillClass(percent(state.summary.mtd,state.summary.straightlineBudget))}
+function renderMainChart(){const rows=state.timelineRows?.length?state.timelineRows:[{label:"Daily",projected:state.summary.projectedBudget/30,straightline:state.summary.straightlineBudget/30,actual:state.summary.mtd/30},{label:"Weekly",projected:state.summary.projectedBudget/4.345,straightline:state.summary.straightlineBudget/4.345,actual:state.summary.mtd/4.345},{label:"Monthly",projected:state.summary.projectedBudget,straightline:state.summary.straightlineBudget,actual:state.summary.mtd},{label:"Quarterly",projected:state.summary.projectedBudget*3,straightline:state.summary.straightlineBudget*3,actual:state.summary.mtd*3},{label:"Yearly",projected:state.summary.projectedBudget*12,straightline:state.summary.straightlineBudget*12,actual:state.summary.mtd*12}]; const ctx=document.getElementById("mainChart").getContext("2d"); if(mainChart) mainChart.destroy(); mainChart=new Chart(ctx,{type:"bar",data:{labels:rows.map(r=>r.label),datasets:[{label:"Projected Budget",data:rows.map(r=>num(r.projected)),maxBarThickness:30},{label:"Straightline Budget",data:rows.map(r=>num(r.straightline)),maxBarThickness:30},{type:"line",label:"MTD Revenue",data:rows.map(r=>num(r.actual)),tension:.35,borderWidth:3,fill:false,pointRadius:4}]},options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:8,right:12,bottom:4,left:4}},scales:{y:{beginAtZero:true,ticks:{callback:(v)=>`${Math.round(v/1000)}k`}},x:{ticks:{maxRotation:0,minRotation:0}}},plugins:{tooltip:{callbacks:{label:(ctx)=>`${ctx.dataset.label}: ${money(ctx.raw)}`}}}}})}
+function sortRowsLowToHigh(rows){return [...rows].sort((a,b)=>{const aPct=percent(a.actual,a.projectedBudget||a.straightlineBudget); const bPct=percent(b.actual,b.projectedBudget||b.straightlineBudget); return aPct-bPct})}
+function renderTables(){const search=document.getElementById("globalSearch").value.toLowerCase(); const divisionRows=sortRowsLowToHigh(state.divisionRows); const pmRows=sortRowsLowToHigh(state.pmRows).filter(row=>`${row.pm||""} ${row.project||""} ${row.category||""}`.toLowerCase().includes(search)); document.getElementById("divisionBody").innerHTML=divisionRows.length?divisionRows.map(item=>`<tr><td><strong>${escapeHtml(item.division||"")}</strong></td><td class="right">${money(item.actual)}</td><td class="right">${money(item.projectedBudget)}</td><td class="right">${money(item.straightlineBudget)}</td><td class="right"><span class="${pillClass(percent(item.actual,item.projectedBudget))}">${percent(item.actual,item.projectedBudget).toFixed(1)}%</span></td><td class="right"><span class="${pillClass(percent(item.actual,item.straightlineBudget))}">${percent(item.actual,item.straightlineBudget).toFixed(1)}%</span></td></tr>`).join(""):`<tr><td colspan="6" class="muted">No division rows loaded yet.</td></tr>`; document.getElementById("pmBody").innerHTML=pmRows.length?pmRows.map(item=>`<tr><td><strong>${escapeHtml(item.pm||"")}</strong></td><td class="right">${money(item.actual)}</td><td class="right">${money(item.projectedBudget)}</td><td class="right">${money(item.straightlineBudget)}</td><td class="right"><span class="${pillClass(percent(item.actual,item.projectedBudget))}">${percent(item.actual,item.projectedBudget).toFixed(1)}%</span></td><td class="right"><span class="${pillClass(percent(item.actual,item.straightlineBudget))}">${percent(item.actual,item.straightlineBudget).toFixed(1)}%</span></td></tr>`).join(""):`<tr><td colspan="6" class="muted">No PM rows loaded yet.</td></tr>`; document.getElementById("dailyEntriesBody").innerHTML=state.dailyEntries.length?state.dailyEntries.map(row=>`<tr><td>${escapeHtml(row.date||"")}</td><td>${escapeHtml(row.manager||"")}</td><td><strong>${escapeHtml(row.projectName||"")}</strong></td><td>${escapeHtml(row.category||"")}</td><td class="right">${money(row.actualTodayRevenue)}</td><td class="right">${money(row.monthlyProjectedBudget)}</td><td class="right">${money(row.dailyBudget)}</td><td class="right">${escapeHtml(row.incidents??"0")}</td></tr>`).join(""):`<tr><td colspan="8" class="muted">No daily revenue entries yet.</td></tr>`; document.getElementById("projectsBody").innerHTML=state.projectRows.length?state.projectRows.map(row=>`<tr><td>${escapeHtml(row.date||"")}</td><td><strong>${escapeHtml(row.projectName||"")}</strong></td><td>${escapeHtml(row.category||"")}</td><td>${escapeHtml(row.projectManager||"")}</td><td class="right">${escapeHtml(row.margin||"")}%</td><td class="right">${money(row.budget)}</td><td>${escapeHtml(row.startDate||"")}</td><td>${escapeHtml(row.finishDate||"")}</td></tr>`).join(""):`<tr><td colspan="8" class="muted">No projects saved yet.</td></tr>`; document.getElementById("pmProgressList").innerHTML=pmRows.length?pmRows.map(row=>{const score=percent(row.actual,row.projectedBudget); return `<div class="progress-block"><div class="progress-head"><div><div style="font-weight:800">${escapeHtml(row.pm||"")}</div><div class="muted" style="font-size:12px;margin-top:4px">MTD ${money(row.actual)} vs Monthly projected ${money(row.projectedBudget)}</div></div><span class="${pillClass(score)}">${score.toFixed(1)}%</span></div><div class="progress-bar"><div class="progress-fill" style="width:${Math.max(0,Math.min(score,100))}%"></div></div><div class="muted" style="font-size:12px;margin-top:10px">Straightline variance ${variancePercent(row.actual,row.straightlineBudget).toFixed(1)}%</div></div>`}).join(""):`<div class="muted">No PM performance rows available.</div>`; document.getElementById("incidentList").innerHTML=state.dailyEntries.length?state.dailyEntries.slice(0,10).map(row=>`<div class="incident-card"><div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start"><div><div style="font-weight:800">${escapeHtml(row.projectName||"")}</div><div class="muted" style="font-size:12px;margin-top:4px">${escapeHtml(row.date||"")} • ${escapeHtml(row.manager||"")}</div></div><span class="${Number(row.incidents||0)>0?'pill bad':'pill good'}">${escapeHtml(row.incidents||"0")} incidents</span></div></div>`).join(""):`<div class="muted">No incident records yet.</div>`}
+function renderAll(){renderSummary(); renderMainChart(); renderTables(); updateDailyBudgetAndProgress()}
+async function loadDashboard(){clearMessage(); try{const res=await fetch(`${CONFIG.WEB_APP_URL}?action=getDashboardData`); const data=await res.json(); if(!data.success&&data.error) throw new Error(data.error); state.summary={totalConfirmed:num(data.totalConfirmed),totalForecast:num(data.totalForecast),mtd:num(data.mtd),groupYTD:num(data.groupYTD),btyd:num(data.btyd),straightlineBudget:num(data.straightlineBudget),projectedBudget:num(data.projectedBudget)}; state.divisionRows=Array.isArray(data.divisionPerformance)?data.divisionPerformance:[]; state.pmRows=Array.isArray(data.pmPerformance)?data.pmPerformance:[]; state.dailyEntries=Array.isArray(data.dailyRevenueEntries)?data.dailyRevenueEntries:[]; state.projectRows=Array.isArray(data.projects)?data.projects:[]; state.timelineRows=Array.isArray(data.timeline)?data.timeline:[]; renderAll()}catch(err){showMessage(err.message||"Failed to load dashboard.","err")}}
+async function saveDailyRevenue(){clearMessage(); try{const form=getDailyForm(); if(!form.manager||!form.projectName||!form.date) throw new Error("Fill in manager, date and project name."); if(!num(form.monthlyProjectedBudget)&&!getStoredMonthlyBudget(form.projectName,form.manager,form.date)) throw new Error("Enter the Monthly Projected Budget at least once for this project and manager."); const rememberedBudget=num(form.monthlyProjectedBudget)||num(getStoredMonthlyBudget(form.projectName,form.manager,form.date)); setStoredMonthlyBudget(form.projectName,form.manager,form.date,rememberedBudget); const dailyBudget=rememberedBudget/Math.max(daysInMonth(form.date),1); const payload={action:"saveDailyRevenue",...form,monthlyProjectedBudget:rememberedBudget,dailyBudget}; const res=await fetch(CONFIG.WEB_APP_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)}); const result=await res.json(); if(!result.success) throw new Error(result.error||"Could not save daily revenue."); showMessage("Daily revenue saved successfully.","ok"); loadDashboard()}catch(err){showMessage(err.message||"Save failed.","err")}}
+async function saveProject(){clearMessage(); try{const form=getProjectForm(); if(!form.projectName||!form.projectManager||!form.startDate||!form.finishDate) throw new Error("Complete project name, project manager, start date and finish date."); const spreadTotal=MONTH_FIELDS.reduce((sum,m)=>sum+num(form.spread[m]),0); const totalBudget=num(form.budget); if(totalBudget&&spreadTotal&&Math.round(totalBudget)!==Math.round(spreadTotal)) throw new Error("Monthly spread total must match the project budget."); const res=await fetch(CONFIG.WEB_APP_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"saveProject",...form})}); const result=await res.json(); if(!result.success) throw new Error(result.error||"Could not save project."); showMessage("Project saved successfully.","ok"); loadDashboard()}catch(err){showMessage(err.message||"Could not save project.","err")}}
+function bindEvents(){document.querySelectorAll(".tab-btn").forEach(btn=>btn.addEventListener("click",()=>{document.querySelectorAll(".tab-btn").forEach(b=>b.classList.remove("active")); document.querySelectorAll(".tab-pane").forEach(p=>p.classList.remove("active")); btn.classList.add("active"); document.getElementById(`tab-${btn.dataset.tab}`).classList.add("active")})); document.getElementById("refreshBtn").addEventListener("click",loadDashboard); document.getElementById("globalSearch").addEventListener("input",renderTables); ["dailyDate","dailyProject","dailyActual","dailyMonthlyBudget","dailyIncidents","dailyManager","dailyCategory"].forEach(id=>{document.getElementById(id).addEventListener("input",updateDailyBudgetAndProgress); document.getElementById(id).addEventListener("change",updateDailyBudgetAndProgress)}); document.getElementById("dailyProject").addEventListener("change",()=>{const form=getDailyForm(); const remembered=getStoredMonthlyBudget(form.projectName,form.manager,form.date); if(remembered) document.getElementById("dailyMonthlyBudget").value=remembered; updateDailyBudgetAndProgress()}); document.getElementById("dailyManager").addEventListener("change",()=>{const form=getDailyForm(); const remembered=getStoredMonthlyBudget(form.projectName,form.manager,form.date); if(remembered) document.getElementById("dailyMonthlyBudget").value=remembered; updateDailyBudgetAndProgress()}); document.getElementById("dailyMonthlyBudget").addEventListener("change",()=>{const form=getDailyForm(); if(form.projectName&&form.manager&&form.monthlyProjectedBudget) setStoredMonthlyBudget(form.projectName,form.manager,form.date,form.monthlyProjectedBudget)}); document.getElementById("saveDailyBtn").addEventListener("click",saveDailyRevenue); document.getElementById("clearDailyBtn").addEventListener("click",clearDailyForm); document.getElementById("saveProjectBtn").addEventListener("click",saveProject); document.getElementById("clearProjectBtn").addEventListener("click",clearProjectForm)}
+document.addEventListener("DOMContentLoaded",()=>{setDefaults(); bindEvents(); loadDashboard()})
 </script>
 </body>
 </html>
