@@ -73,7 +73,7 @@
         <h2 style="margin:0 0 8px">Live Google Sheets dashboard</h2>
         <div class="muted">
           This dashboard mirrors the attached layout and now reads primary operational data from <strong>Manager Dashboard</strong>
-          and confirmed / forecast totals from <strong>April Projected</strong>. Daily Actual comes from <strong>Daily Revenue</strong>,
+          and confirmed / forecast totals from <strong>April Projected</strong> using <strong>Amount</strong> values where <strong>Status</strong> is Confirmed or Forecast. Daily Actual comes from <strong>Daily Revenue</strong>,
           projected and straight-line are scaled from their daily and monthly values, and the selected month can be changed even for past months.
         </div>
       </div>
@@ -197,7 +197,7 @@
   </div>
 
   <script>
-    const DEFAULT_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwHvxp1UgU1Il1TnYf6G6dQRM7583O1qoxvftpei5_yOLuGk6W7nCEjCR0c-lUz5npn/exec';
+    const DEFAULT_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz2Ks_gUUBU3H9hSK9yRhvPWPexd_7BX7BCPL4wlXAUEUi3w3jylP6P7v4RZW5dO9gG/exec';
     const SCRIPT_URL = resolveScriptUrl_();
     const state = { data: null, charts: {} };
     const $ = id => document.getElementById(id);
@@ -309,8 +309,8 @@
         ['Daily Actual', h.dailyRevenue, `${h.actualVsProjectedPct}% vs projected`],
         ['Projected Budget', h.projectedBudget, `${h.actualVsStraightlinePct}% vs straight-line`],
         ['Straight-line Budget', h.straightlineBudget, 'Scaled by filter'],
-        ['Total Confirmed', h.confirmed, 'From April Projected'],
-        ['Total Forecast', h.forecast, 'From April Projected']
+        ['Total Confirmed', h.confirmed, 'Column E where Status matches filter'],
+        ['Total Forecast', h.forecast, 'Column E where Status matches filter']
       ].map(x => `<div class="kpi"><div class="label">${esc(x[0])}</div><div class="value">${money(x[1])}</div><div class="sub">${esc(x[2])}</div></div>`).join('');
     }
 
