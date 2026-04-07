@@ -40,8 +40,8 @@
       <div>
         <h2 style="margin:0 0 8px">Live Google Sheets dashboard</h2>
         <div style="color:var(--muted)">
-          Straightline Budget, Projected Budget and Daily Revenue are read from <strong>Manager Dashboard</strong> in spreadsheet
-          <strong>1DqbP3DmLjTLWuLY6I4X_Xkpg30IkfPSqNVcbU_5WrEE</strong>. Total Confirmed and Total Forecast are read from another sheet.
+          Straightline Budget, MTD and Daily Revenue are read from <strong>Manager Dashboard</strong> in spreadsheet
+          <strong>1DqbP3DmLjTLWuLY6I4X_Xkpg30IkfPSqNVcbU_5WrEE</strong> using column <strong>J / Daily Revenue</strong> for Daily Revenue and MTD. Billing position and financial summary use <strong>Payments</strong> and <strong>Invoices</strong> sheets from their linked spreadsheets. Total Confirmed and Total Forecast are read from another sheet.
           Entry fields now match these exact headings: <strong>Date, Cost Center, Category, Project Manager, Project Name, Monthly Projected Budget, Monthly Straightline Budget, Daily Projected Budget, Daily Straightline Budget, Daily Revenue, Invoices Issued, Payments Received, Confirmed, Forecast</strong>.
         </div>
       </div>
@@ -169,7 +169,7 @@
   </div>
 
   <script>
-    const DEFAULT_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyChbVPQuhfCKP-ZjpDosCuKnzbGuxJ1HELj55TrYG_ASHDysbjFkOdBthiZ6De_M21/exec';
+    const DEFAULT_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw7kxH5xiDRaNpTHTSBJz5kxaIZ82_73SHRRZkJSk4oXnJ3-zL6wWsx9JpBgS0mmWqL/exec';
     const STATIC_COST_CENTERS = ['All','Onpoint Ontime','Aqua Telcoms','Nkanyezi','Distinct'];
     const STATIC_MANAGERS = ['All','Moses','Johan','Siyanda','Dave','James','Rayman','Timothy','Roads Site Agent COT','Stanley','Civil Site Agent','Roads Site Agent CPT','Brian','EL CM','Tony','Govern','Graham','Ronald','Petros','Elroy','Mesh','Vusi','Tinotenda','Sydney','Andrew','Phillip','Moeti'];
     const SCRIPT_URL = resolveScriptUrl_();
