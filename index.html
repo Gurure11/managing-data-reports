@@ -73,7 +73,7 @@
         <h2 style="margin:0 0 8px">Live Google Sheets dashboard</h2>
         <div class="muted">
           This dashboard mirrors the attached layout and now reads primary operational data from <strong>Manager Dashboard</strong>
-          and confirmed / forecast totals from <strong>April Projected</strong> using <strong>Amount</strong> values where <strong>Status</strong> is Confirmed or Forecast. Daily Actual comes from <strong>Daily Revenue</strong>,
+          and confirmed / forecast totals from <strong>ProjectsA</strong> using <strong>Amount</strong> values where <strong>Status</strong> is Confirmed or Forecast. Daily Actual comes from <strong>Daily Revenue</strong>,
           projected and straight-line are scaled from their daily and monthly values, and the selected month can be changed even for past months.
         </div>
       </div>
@@ -197,7 +197,7 @@
   </div>
 
   <script>
-    const DEFAULT_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz2Ks_gUUBU3H9hSK9yRhvPWPexd_7BX7BCPL4wlXAUEUi3w3jylP6P7v4RZW5dO9gG/exec';
+    const DEFAULT_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyu7jBk6QrMYNUwaSiI1v4WZcXI7zvLjP-HA-tgEh5LDVNdG61ifEN_DiSIl6ZDI4pS/exec';
     const SCRIPT_URL = resolveScriptUrl_();
     const state = { data: null, charts: {} };
     const $ = id => document.getElementById(id);
