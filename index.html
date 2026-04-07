@@ -40,9 +40,9 @@
     budgetsSheetName: 'Budgets',
     revenueSheetId: '1wl599p4871pR2tOZmIuq44pdDy6N2PggKrmMrfD8wv0',
     revenueSheetName: 'Revenue',
-    projectsSheetName: 'Budgets',
-    storageKey: 'https://script.google.com/macros/s/AKfycbx6ps83VVUbuGfyFNd_M5DLI1KJGCYYGUKXEUFRUNzg7dSpiobjwyOEGwCZI-eWuWUYWw/exec',
-    defaultScriptUrl: ''
+    projectsSheetName: 'Projects',
+    storageKey: 'https://script.google.com/macros/s/AKfycbwP5ROP1uHr0vCF9Tfn_uyuavXNWYwI9UiyczscOyDsJxicU1UYI6K8xrW5AipJrmicTA/exec',
+    defaultScriptUrl: 'https://script.google.com/macros/s/AKfycbwP5ROP1uHr0vCF9Tfn_uyuavXNWYwI9UiyczscOyDsJxicU1UYI6K8xrW5AipJrmicTA/exec'
   };
 
   let state = {
@@ -611,9 +611,15 @@
 
     const revenueProjectName = document.getElementById('revenueProjectName');
     const revenueMargin = document.getElementById('revenueMargin');
-    if (revenueProjectName && revenueMargin) {
+    const revenueManager = document.querySelector('#revenueForm input[name="manager"]');
+    const revenueCostCenter = document.querySelector('#revenueForm input[name="costCenter"]');
+    if (revenueProjectName) {
       const match = projectMetaByName(revenueProjectName.value);
-      revenueMargin.value = match ? match.margin : '';
+      if (revenueMargin) revenueMargin.value = match ? match.margin : '';
+      if (match) {
+        if (revenueManager) revenueManager.value = match.manager || '';
+        if (revenueCostCenter) revenueCostCenter.value = match.costCenter || '';
+      }
     }
   }
 
