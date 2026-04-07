@@ -16,12 +16,12 @@
     .kpi{padding:16px;border:1px solid var(--line);border-radius:18px;background:#fff}.kpi .label{color:var(--muted);font-size:12px;text-transform:uppercase;font-weight:700;letter-spacing:.06em}.kpi .value{font-size:24px;font-weight:700;margin-top:8px}.kpi .sub{color:var(--muted);margin-top:4px}
     input,select,button{width:100%;padding:12px 13px;border:1px solid var(--line);border-radius:14px;background:#fff;font:inherit;color:var(--text)}button{background:var(--primary);color:#fff;cursor:pointer}
     .form-grid{grid-template-columns:repeat(12,1fr)} .field{display:flex;flex-direction:column;gap:6px}.field label{font-size:12px;color:var(--muted);text-transform:uppercase;font-weight:700}
-    .span-2{grid-column:span 2}.span-3{grid-column:span 3}.span-4{grid-column:span 4}.span-6{grid-column:span 6}.span-12{grid-column:span 12}
+    .span-2{grid-column:span 2}.span-4{grid-column:span 4}.span-12{grid-column:span 12}
     table{width:100%;border-collapse:collapse}th,td{padding:12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}th{font-size:12px;color:var(--muted);text-transform:uppercase;background:#f8fafc;letter-spacing:.06em}.table-wrap{overflow:auto;border:1px solid var(--line);border-radius:16px;background:#fff}
     .badge{display:inline-block;padding:5px 10px;border-radius:999px;font-size:12px;font-weight:700}.ok{background:var(--green-bg);color:var(--green)}.warn{background:var(--amber-bg);color:var(--amber)}.bad{background:var(--red-bg);color:var(--red)}.blue{background:var(--blue-bg);color:var(--blue)}
     .chart-box{height:320px;position:relative}.progress{height:12px;background:#e5e7eb;border-radius:999px;overflow:hidden}.progress>div{height:100%;background:#0f172a}.progress.good>div{background:#15803d}.progress.alt>div{background:#94a3b8}.progress-card,.finance-card{border:1px solid var(--line);border-radius:18px;padding:16px;background:#fff}.progress-row{margin-top:12px}.progress-head,.lineitem{display:flex;justify-content:space-between;gap:10px;margin-bottom:6px}.lineitem{font-size:13px}
     .toast-wrap{position:fixed;top:16px;right:16px;z-index:9999;display:grid;gap:10px;max-width:320px}.toast{padding:12px 14px;border-radius:14px;border:1px solid var(--line);background:#fff;box-shadow:var(--shadow);font-size:13px}.toast.success{border-color:#bbf7d0;background:#f0fdf4;color:#166534}.toast.error{border-color:#fecaca;background:#fef2f2;color:#991b1b}
-    @media (max-width:1100px){.topbar,.hero,.toolbar,.kpis,.tabs,.grid.two,.stats,.progress-cards,.form-grid,.finance-grid{grid-template-columns:1fr}.span-2,.span-3,.span-4,.span-6,.span-12{grid-column:span 1}}
+    @media (max-width:1100px){.topbar,.hero,.toolbar,.kpis,.tabs,.grid.two,.stats,.progress-cards,.form-grid,.finance-grid{grid-template-columns:1fr}.span-2,.span-4,.span-12{grid-column:span 1}}
   </style>
 </head>
 <body>
@@ -40,9 +40,7 @@
       <div>
         <h2 style="margin:0 0 8px">Live Google Sheets dashboard</h2>
         <div style="color:var(--muted)">
-          Straightline Budget, Projected Budget and Daily Revenue are read from <strong>Manager Dashboard</strong> in spreadsheet
-          <strong>1DqbP3DmLjTLWuLY6I4X_Xkpg30IkfPSqNVcbU_5WrEE</strong>. Total Confirmed and Total Forecast are read from another sheet.
-          Entry fields now match these exact headings: <strong>Date, Cost Center, Category, Project Manager, Project Name, Monthly Projected Budget, Monthly Straightline Budget, Daily Projected Budget, Daily Straightline Budget, Daily Revenue, Invoices Issued, Payments Received, Confirmed, Forecast</strong>.
+          Quarterly now auto-uses the correct fiscal quarter dates. MTD uses the month from the selected range, YTD runs from March 1, and BTYED = Total Confirmed - YTD.
         </div>
       </div>
       <div class="toolbar">
@@ -130,15 +128,6 @@
           <div class="field span-2"><label>Category</label><input id="projectCategory"></div>
           <div class="field span-2"><label>Project Manager</label><input id="projectManager"></div>
           <div class="field span-4"><label>Project Name</label><input id="projectName"></div>
-          <div class="field span-2"><label>Monthly Projected Budget</label><input id="projectMonthlyProjected" type="number" min="0" step="0.01"></div>
-          <div class="field span-2"><label>Monthly Straightline Budget</label><input id="projectMonthlyStraightline" type="number" min="0" step="0.01"></div>
-          <div class="field span-2"><label>Daily Projected Budget</label><input id="projectDailyProjected" type="number" min="0" step="0.01"></div>
-          <div class="field span-2"><label>Daily Straightline Budget</label><input id="projectDailyStraightline" type="number" min="0" step="0.01"></div>
-          <div class="field span-2"><label>Daily Revenue</label><input id="projectDailyRevenue" type="number" min="0" step="0.01"></div>
-          <div class="field span-2"><label>Invoices Issued</label><input id="projectInvoices" type="number" min="0" step="0.01"></div>
-          <div class="field span-2"><label>Payments Received</label><input id="projectPayments" type="number" min="0" step="0.01"></div>
-          <div class="field span-2"><label>Confirmed</label><input id="projectConfirmed" type="number" min="0" step="0.01"></div>
-          <div class="field span-2"><label>Forecast</label><input id="projectForecast" type="number" min="0" step="0.01"></div>
           <div class="field span-12"><button id="saveProjectBtn" type="button">Add Project</button></div>
         </div>
       </div>
@@ -169,7 +158,7 @@
   </div>
 
   <script>
-    const DEFAULT_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwxWJf8xekpMJmaef6r9pAfrnjmkBzwfErDmq-y65oyzK1H5aqsN99aZmXVKgp9qioc/exec';
+    const DEFAULT_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxxdsZ6HenKZbgZZyGlsfKK82BDDXClW-XPupdjERMGXVEhdiXntEVaXvAJTeQWerVc/exec';
     const STATIC_COST_CENTERS = ['All','Onpoint Ontime','Aqua Telcoms','Nkanyezi','Distinct'];
     const STATIC_MANAGERS = ['All','Moses','Johan','Siyanda','Dave','James','Rayman','Timothy','Roads Site Agent COT','Stanley','Civil Site Agent','Roads Site Agent CPT','Brian','EL CM','Tony','Govern','Graham','Ronald','Petros','Elroy','Mesh','Vusi','Tinotenda','Sydney','Andrew','Phillip','Moeti'];
     const SCRIPT_URL = resolveScriptUrl_();
@@ -187,11 +176,9 @@
       if (candidate && candidate.startsWith('https://script.google.com/macros/s/') && candidate.endsWith('/exec')) localStorage.setItem('ONPOINT_SCRIPT_URL', candidate);
       return candidate;
     }
-
     function validateScriptUrl_(url) {
       return Boolean(url) && /^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+\/exec(?:\?.*)?$/.test(url);
     }
-
     function showToast(message, type='success') {
       const wrap = $('toastWrap');
       const el = document.createElement('div');
@@ -200,7 +187,6 @@
       wrap.appendChild(el);
       setTimeout(() => el.remove(), 2800);
     }
-
     function perfClass(value) {
       if (value >= 91) return 'blue';
       if (value >= 75) return 'ok';
@@ -209,11 +195,41 @@
     }
     function badge(v) { return `<span class="badge ${perfClass(Number(v)||0)}">${Number(v)||0}%</span>`; }
 
-    function setDefaultDates() {
+    function applyPeriodDefaults() {
+      const period = $('periodFilter').value || 'Monthly';
       const now = new Date();
-      const from = new Date(now.getFullYear(), now.getMonth(), 1);
-      $('periodFromFilter').value = from.toISOString().slice(0,10);
-      $('periodToFilter').value = now.toISOString().slice(0,10);
+      const today = now.toISOString().slice(0,10);
+      let from = today, to = today;
+
+      if (period === 'Quarterly') {
+        const m = now.getMonth();
+        let startMonth = 0;
+        let year = now.getFullYear();
+        if (m >= 2 && m <= 4) startMonth = 2;
+        else if (m >= 5 && m <= 7) startMonth = 5;
+        else if (m >= 8 && m <= 10) startMonth = 8;
+        else { startMonth = 11; if (m <= 1) year = now.getFullYear()-1; }
+        from = new Date(year, startMonth, 1).toISOString().slice(0,10);
+        const quarterEnd = new Date(year, startMonth + 3, 0).toISOString().slice(0,10);
+        to = quarterEnd < today ? quarterEnd : today;
+      } else if (period === 'Monthly') {
+        from = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0,10);
+        to = today;
+      } else if (period === 'Yearly') {
+        const fyYear = now.getMonth() >= 2 ? now.getFullYear() : now.getFullYear() - 1;
+        from = new Date(fyYear, 2, 1).toISOString().slice(0,10);
+        to = today;
+      } else if (period === 'Weekly') {
+        const day = now.getDay();
+        const diff = day === 0 ? -6 : 1 - day;
+        const start = new Date(now);
+        start.setDate(now.getDate() + diff);
+        from = start.toISOString().slice(0,10);
+        to = today;
+      }
+
+      $('periodFromFilter').value = from;
+      $('periodToFilter').value = to;
     }
 
     async function loadDashboard() {
@@ -257,8 +273,6 @@
       bindSelect($('periodFilter'), periods, $('periodFilter').value || 'Monthly');
       bindSelect($('costCenterFilter'), STATIC_COST_CENTERS, $('costCenterFilter').value || 'All');
       bindSelect($('managerFilter'), STATIC_MANAGERS, $('managerFilter').value || 'All');
-      if (!$('periodFromFilter').value) $('periodFromFilter').value = options.periodFrom || '';
-      if (!$('periodToFilter').value) $('periodToFilter').value = options.periodTo || '';
       $('projectList').innerHTML = projects.map(p => `<option value="${esc(p)}"></option>`).join('');
     }
 
@@ -273,12 +287,12 @@
       const h = state.data.headline;
       $('headlineKpis').innerHTML = [
         ['Daily Revenue', h.dailyRevenue, `${h.actualVsProjectedPct}% vs MTD`],
-        ['MTD', h.mtd, 'Monthly daily revenue total'],
-        ['Straightline Budget', h.straightlineBudget, 'From Manager Dashboard'],
+        ['MTD', h.mtd, 'Month from selected range'],
+        ['Straightline Budget', h.straightlineBudget, 'Filtered period total'],
         ['Total Confirmed', h.confirmed, 'From totals sheet'],
         ['Total Forecast', h.forecast, 'From totals sheet'],
-        ['Group YTD', h.ytd, 'Year to date revenue'],
-        ['Group BTYED', h.groupBtyed, 'Total confirmed - YTD']
+        ['Group YTD', h.ytd, 'March 1 to selected To date'],
+        ['Group BTYED', h.groupBtyed, 'Total Confirmed - YTD']
       ].map(x => `<div class="kpi"><div class="label">${esc(x[0])}</div><div class="value">${money(x[1])}</div><div class="sub">${esc(String(x[2]))}</div></div>`).join('');
     }
 
@@ -409,16 +423,7 @@
         costCenter:$('projectCostCenter').value,
         category:$('projectCategory').value,
         projectManager:$('projectManager').value,
-        projectName:$('projectName').value,
-        monthlyProjectedBudget:num($('projectMonthlyProjected').value),
-        monthlyStraightlineBudget:num($('projectMonthlyStraightline').value),
-        dailyProjectedBudget:num($('projectDailyProjected').value),
-        dailyStraightlineBudget:num($('projectDailyStraightline').value),
-        dailyRevenue:num($('projectDailyRevenue').value),
-        invoicesIssued:num($('projectInvoices').value),
-        paymentsReceived:num($('projectPayments').value),
-        confirmed:num($('projectConfirmed').value),
-        forecast:num($('projectForecast').value)
+        projectName:$('projectName').value
       };
       if (!payload.projectName || !payload.projectManager) return showToast('Enter Project Name and Project Manager.', 'error');
       const res = await fetch(SCRIPT_URL, { method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body:JSON.stringify(payload) });
@@ -436,14 +441,18 @@
       $(tab.dataset.panel).classList.add('active');
     }));
 
-    ['periodFilter','periodFromFilter','periodToFilter','costCenterFilter','managerFilter'].forEach(id => $(id).addEventListener('change', loadDashboard));
+    $('periodFilter').addEventListener('change', () => { applyPeriodDefaults(); loadDashboard(); });
+    ['periodFromFilter','periodToFilter','costCenterFilter','managerFilter'].forEach(id => $(id).addEventListener('change', loadDashboard));
     $('refreshBtn').addEventListener('click', loadDashboard);
     $('saveEntryBtn').addEventListener('click', async () => { try { await saveEntry(); } catch (e) { showToast(e.message, 'error'); } });
     $('saveProjectBtn').addEventListener('click', async () => { try { await saveProject(); } catch (e) { showToast(e.message, 'error'); } });
 
     $('entryDate').value = todayISO();
     $('projectDate').value = todayISO();
-    setDefaultDates();
+    bindSelect($('periodFilter'), ['Daily','Weekly','Monthly','Quarterly','Yearly'], 'Quarterly');
+    bindSelect($('costCenterFilter'), STATIC_COST_CENTERS, 'All');
+    bindSelect($('managerFilter'), STATIC_MANAGERS, 'All');
+    applyPeriodDefaults();
     loadDashboard();
   </script>
 </body>
