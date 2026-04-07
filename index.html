@@ -197,7 +197,7 @@
   </div>
 
   <script>
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxyVi86u9WCRAONkzBCfSZGtGUlh-fIXnya72L-v0XOJL4ZWdBRbjj4S7Yw7L5C9CxT/exec';
+    const SCRIPT_URL = 'PASTE_YOUR_DEPLOYED_APPS_SCRIPT_WEB_APP_URL_HERE';
     const state = { data: null, charts: {} };
     const $ = id => document.getElementById(id);
     const money = v => new Intl.NumberFormat('en-ZA',{style:'currency',currency:'ZAR',maximumFractionDigits:0}).format(Number(v || 0));
@@ -238,10 +238,17 @@
         $('connBadge').className = 'badge warn';
         $('connBadge').textContent = 'Loading';
         const res = await fetch(`${SCRIPT_URL}?${params.toString()}`);
-        const data = await res.json();
+        const raw = await res.text();
+        let data;
+        try {
+          data = JSON.parse(raw);
+        } catch(parseErr) {
+          throw new Error('Apps Script did not return valid JSON. Re-deploy the web app and make sure the SCRIPT_URL is the /exec URL, not /dev.');
+        }
+        if (!data || typeof data !== 'object') throw new Error('No dashboard response returned from Apps Script.');
         if (!data.success) throw new Error(data.error || 'Load failed');
-        state.data = data;
-        bindOptions(data.options);
+        state.data = Object.assign({ headline:{}, tables:{}, charts:{}, options:{} }, data);
+        bindOptions(state.data.options || {});
         renderAll();
         $('connBadge').className = 'badge ok';
         $('connBadge').textContent = 'Live Connected';
@@ -249,15 +256,21 @@
         $('connBadge').className = 'badge bad';
         $('connBadge').textContent = 'Connection Failed';
         showToast(err.message, 'error');
+        console.error(err);
       }
     }
 
     function bindOptions(options) {
-      bindSelect($('periodFilter'), options.periods, $('periodFilter').value || 'Daily');
-      bindSelect($('monthFilter'), options.months.length ? options.months : [new Date().toISOString().slice(0,7)], $('monthFilter').value || new Date().toISOString().slice(0,7));
-      bindSelect($('costCenterFilter'), options.costCenters, $('costCenterFilter').value || 'All');
-      bindSelect($('managerFilter'), options.managers, $('managerFilter').value || 'All');
-      $('projectList').innerHTML = (options.projects || []).map(p => `<option value="${esc(p)}"></option>`).join('');
+      const periods = Array.isArray(options.periods) && options.periods.length ? options.periods : ['Daily','Weekly','Monthly','Quarterly','Yearly'];
+      const months = Array.isArray(options.months) && options.months.length ? options.months : [new Date().toISOString().slice(0,7)];
+      const costCenters = Array.isArray(options.costCenters) && options.costCenters.length ? options.costCenters : ['All'];
+      const managers = Array.isArray(options.managers) && options.managers.length ? options.managers : ['All'];
+      const projects = Array.isArray(options.projects) ? options.projects : [];
+      bindSelect($('periodFilter'), periods, $('periodFilter').value || 'Daily');
+      bindSelect($('monthFilter'), months, $('monthFilter').value || new Date().toISOString().slice(0,7));
+      bindSelect($('costCenterFilter'), costCenters, $('costCenterFilter').value || 'All');
+      bindSelect($('managerFilter'), managers, $('managerFilter').value || 'All');
+      $('projectList').innerHTML = projects.map(p => `<option value="${esc(p)}"></option>`).join('');
     }
 
     function bindSelect(el, list, selected) {
