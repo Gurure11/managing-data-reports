@@ -3,57 +3,25 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Manager Dashboard | Intelligent Management Dashboard</title>
+  <title>Onpoint Group Dashboard</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
-    :root{
-      --bg:#f5f7fb;--card:#fff;--line:#dbe2ea;--text:#122033;--muted:#5f7187;
-      --primary:#0f172a;--green:#15803d;--amber:#b45309;--red:#b91c1c;
-      --green-bg:#dcfce7;--amber-bg:#fef3c7;--red-bg:#fee2e2;
-      --shadow:0 12px 30px rgba(15,23,42,.08)
-    }
-    *{box-sizing:border-box}
-    body{margin:0;background:var(--bg);color:var(--text);font:14px/1.45 Arial,sans-serif}
-    .wrap{max-width:1500px;margin:0 auto;padding:18px}
-    .card{background:var(--card);border:1px solid var(--line);border-radius:20px;box-shadow:var(--shadow);padding:18px}
+    :root{--bg:#f5f7fb;--card:#fff;--line:#dbe2ea;--text:#122033;--muted:#5f7187;--primary:#0f172a;--green:#15803d;--amber:#b45309;--red:#b91c1c;--green-bg:#dcfce7;--amber-bg:#fef3c7;--red-bg:#fee2e2;--shadow:0 12px 30px rgba(15,23,42,.08)}
+    *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:14px/1.45 Arial,sans-serif}
+    .wrap{max-width:1500px;margin:0 auto;padding:18px}.card{background:var(--card);border:1px solid var(--line);border-radius:20px;box-shadow:var(--shadow);padding:18px}
     .topbar,.hero,.toolbar,.kpis,.tabs,.grid,.stats,.form-grid,.progress-cards{display:grid;gap:14px}
-    .topbar{grid-template-columns:1fr auto auto;align-items:center}
-    .hero{grid-template-columns:1.4fr 1fr;margin-top:16px}
-    .toolbar{grid-template-columns:repeat(4,minmax(150px,1fr))}
-    .kpis{grid-template-columns:repeat(5,1fr);margin-top:16px}
-    .grid.two{grid-template-columns:1fr 1fr}.grid.three{grid-template-columns:repeat(3,1fr)}
-    .tabs{grid-template-columns:repeat(5,1fr);margin-top:16px}
-    .stats{grid-template-columns:repeat(4,1fr)}
-    .progress-cards{grid-template-columns:repeat(2,1fr)}
-    .tab{padding:12px;border:1px solid var(--line);border-radius:14px;background:#eef2f7;cursor:pointer;text-align:center;font-weight:700}
-    .tab.active{background:#fff}
-    .panel{display:none;margin-top:16px}.panel.active{display:block}
-    .kpi{padding:16px;border:1px solid var(--line);border-radius:18px;background:#fff}
-    .kpi .label{color:var(--muted);font-size:12px;text-transform:uppercase;font-weight:700;letter-spacing:.06em}
-    .kpi .value{font-size:28px;font-weight:700;margin-top:8px}.kpi .sub{color:var(--muted);margin-top:4px}
-    input,select,button{width:100%;padding:12px 13px;border:1px solid var(--line);border-radius:14px;background:#fff;font:inherit;color:var(--text)}
-    button{background:var(--primary);color:#fff;cursor:pointer}
-    .secondary{background:#fff;color:var(--text)}
-    .form-grid{grid-template-columns:repeat(12,1fr)} .field{display:flex;flex-direction:column;gap:6px}
-    .field label{font-size:12px;color:var(--muted);text-transform:uppercase;font-weight:700}
+    .topbar{grid-template-columns:1fr auto auto;align-items:center}.hero{grid-template-columns:1.4fr 1fr;margin-top:16px}.toolbar{grid-template-columns:repeat(4,minmax(150px,1fr))}
+    .kpis{grid-template-columns:repeat(6,1fr);margin-top:16px}.grid.two{grid-template-columns:1fr 1fr}.tabs{grid-template-columns:repeat(4,1fr);margin-top:16px}.stats{grid-template-columns:repeat(4,1fr)}.progress-cards{grid-template-columns:repeat(2,1fr)}
+    .tab{padding:12px;border:1px solid var(--line);border-radius:14px;background:#eef2f7;cursor:pointer;text-align:center;font-weight:700}.tab.active{background:#fff}.panel{display:none;margin-top:16px}.panel.active{display:block}
+    .kpi{padding:16px;border:1px solid var(--line);border-radius:18px;background:#fff}.kpi .label{color:var(--muted);font-size:12px;text-transform:uppercase;font-weight:700;letter-spacing:.06em}.kpi .value{font-size:28px;font-weight:700;margin-top:8px}.kpi .sub{color:var(--muted);margin-top:4px}
+    input,select,button{width:100%;padding:12px 13px;border:1px solid var(--line);border-radius:14px;background:#fff;font:inherit;color:var(--text)}button{background:var(--primary);color:#fff;cursor:pointer}
+    .form-grid{grid-template-columns:repeat(12,1fr)} .field{display:flex;flex-direction:column;gap:6px}.field label{font-size:12px;color:var(--muted);text-transform:uppercase;font-weight:700}
     .span-2{grid-column:span 2}.span-3{grid-column:span 3}.span-4{grid-column:span 4}.span-6{grid-column:span 6}.span-12{grid-column:span 12}
-    table{width:100%;border-collapse:collapse}th,td{padding:12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
-    th{font-size:12px;color:var(--muted);text-transform:uppercase;background:#f8fafc;letter-spacing:.06em}
-    .table-wrap{overflow:auto;border:1px solid var(--line);border-radius:16px;background:#fff}
-    .badge{display:inline-block;padding:5px 10px;border-radius:999px;font-size:12px;font-weight:700}
-    .ok{background:var(--green-bg);color:var(--green)}.warn{background:var(--amber-bg);color:var(--amber)}.bad{background:var(--red-bg);color:var(--red)}
-    .muted{color:var(--muted)} .right{text-align:right}
-    .progress{height:12px;background:#e5e7eb;border-radius:999px;overflow:hidden}.progress>div{height:100%;background:#0f172a}
-    .progress.alt>div{background:#94a3b8}.progress.good>div{background:#15803d}.progress.warnbar>div{background:#b45309}.progress.badbar>div{background:#b91c1c}
-    .progress-card{border:1px solid var(--line);border-radius:18px;padding:16px;background:#fff}.progress-row{margin-top:12px}
-    .progress-head{display:flex;justify-content:space-between;gap:10px;margin-bottom:6px}.mini{font-size:12px;color:var(--muted)}
-    .chart-box{height:320px;max-height:320px;position:relative}
-    .toast-wrap{position:fixed;top:16px;right:16px;z-index:9999;display:grid;gap:10px;max-width:320px}
-    .toast{padding:12px 14px;border-radius:14px;border:1px solid var(--line);background:#fff;box-shadow:var(--shadow);font-size:13px}
-    .toast.success{border-color:#bbf7d0;background:#f0fdf4;color:#166534}
-    .toast.error{border-color:#fecaca;background:#fef2f2;color:#991b1b}
-    .section-gap{margin-top:16px}
-    @media (max-width:1100px){.topbar,.hero,.toolbar,.kpis,.tabs,.grid.two,.grid.three,.stats,.progress-cards,.form-grid{grid-template-columns:1fr}.span-2,.span-3,.span-4,.span-6,.span-12{grid-column:span 1}}
+    table{width:100%;border-collapse:collapse}th,td{padding:12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}th{font-size:12px;color:var(--muted);text-transform:uppercase;background:#f8fafc;letter-spacing:.06em}.table-wrap{overflow:auto;border:1px solid var(--line);border-radius:16px;background:#fff}
+    .badge{display:inline-block;padding:5px 10px;border-radius:999px;font-size:12px;font-weight:700}.ok{background:var(--green-bg);color:var(--green)}.warn{background:var(--amber-bg);color:var(--amber)}.bad{background:var(--red-bg);color:var(--red)}
+    .chart-box{height:320px;position:relative}.progress{height:12px;background:#e5e7eb;border-radius:999px;overflow:hidden}.progress>div{height:100%;background:#0f172a}.progress.good>div{background:#15803d}.progress.alt>div{background:#94a3b8}.progress-card{border:1px solid var(--line);border-radius:18px;padding:16px;background:#fff}.progress-row{margin-top:12px}.progress-head{display:flex;justify-content:space-between;gap:10px;margin-bottom:6px}
+    .toast-wrap{position:fixed;top:16px;right:16px;z-index:9999;display:grid;gap:10px;max-width:320px}.toast{padding:12px 14px;border-radius:14px;border:1px solid var(--line);background:#fff;box-shadow:var(--shadow);font-size:13px}.toast.success{border-color:#bbf7d0;background:#f0fdf4;color:#166534}.toast.error{border-color:#fecaca;background:#fef2f2;color:#991b1b}
+    @media (max-width:1100px){.topbar,.hero,.toolbar,.kpis,.tabs,.grid.two,.stats,.progress-cards,.form-grid{grid-template-columns:1fr}.span-2,.span-3,.span-4,.span-6,.span-12{grid-column:span 1}}
   </style>
 </head>
 <body>
@@ -61,8 +29,8 @@
   <div class="wrap">
     <div class="card topbar">
       <div>
-        <div class="muted">Onpoint Group</div>
-        <h1 style="margin:4px 0 0;font-size:28px">Manager Dashboard</h1>
+        <div style="color:var(--muted)">Onpoint Group</div>
+        <h1 style="margin:4px 0 0;font-size:28px">Dashboard</h1>
       </div>
       <div id="connBadge" class="badge warn">Connecting</div>
       <button id="refreshBtn" type="button">Refresh</button>
@@ -71,10 +39,10 @@
     <div class="card hero">
       <div>
         <h2 style="margin:0 0 8px">Live Google Sheets dashboard</h2>
-        <div class="muted">
-          This dashboard mirrors the attached layout and now reads primary operational data from <strong>Manager Dashboard</strong>
-          and confirmed / forecast totals from <strong>April Projected</strong>. Daily Actual comes from <strong>Daily Revenue</strong>,
-          projected and straight-line are scaled from their daily and monthly values, and the selected month can be changed even for past months.
+        <div style="color:var(--muted)">
+          Straightline Budget, Projected Budget and Daily Revenue are read from <strong>Manager Dashboard</strong> in spreadsheet
+          <strong>1DqbP3DmLjTLWuLY6I4X_Xkpg30IkfPSqNVcbU_5WrEE</strong>. Total Confirmed and Total Forecast are read from another sheet.
+          Entry fields now match these exact headings: <strong>Date, Cost Center, Category, Project Manager, Project Name, Monthly Projected Budget, Monthly Straightline Budget, Daily Projected Budget, Daily Straightline Budget, Daily Revenue, Invoices Issued, Payments Received, Confirmed, Forecast</strong>.
         </div>
       </div>
       <div class="toolbar">
@@ -87,14 +55,13 @@
 
     <div class="kpis" id="headlineKpis"></div>
 
-    <div class="card section-gap">
+    <div class="card" style="margin-top:16px">
       <h3 style="margin-top:0">Cost center target progress</h3>
       <div id="progressCards" class="progress-cards"></div>
     </div>
 
     <div class="tabs">
       <div class="tab active" data-panel="summaryPanel">Summary</div>
-      <div class="tab" data-panel="performancePanel">Performance</div>
       <div class="tab" data-panel="revenuePanel">Daily Revenue</div>
       <div class="tab" data-panel="projectsPanel">Add Project</div>
       <div class="tab" data-panel="tablesPanel">Tables</div>
@@ -111,7 +78,7 @@
           <div id="billingStats" class="stats"></div>
         </div>
       </div>
-      <div class="grid two section-gap">
+      <div class="grid two" style="margin-top:16px">
         <div class="card">
           <h3 style="margin-top:0">Actual vs Projected vs Straight-line</h3>
           <div class="chart-box"><canvas id="varianceChart"></canvas></div>
@@ -120,23 +87,6 @@
           <h3 style="margin-top:0">Manager comparison performance</h3>
           <div class="chart-box"><canvas id="managerChart"></canvas></div>
         </div>
-      </div>
-    </div>
-
-    <div class="panel" id="performancePanel">
-      <div class="grid two">
-        <div class="card">
-          <h3 style="margin-top:0">Cost center performance</h3>
-          <div class="table-wrap"><table id="costCenterTable"></td></div>
-        </div>
-        <div class="card">
-          <h3 style="margin-top:0">Project variance</h3>
-          <div class="table-wrap"><table id="projectVarianceTable"></tr></div>
-        </div>
-      </div>
-      <div class="card section-gap">
-        <h3 style="margin-top:0">Cost center variance graph</h3>
-        <div class="chart-box"><canvas id="costCenterChart"></canvas></div>
       </div>
     </div>
 
@@ -166,7 +116,7 @@
 
     <div class="panel" id="projectsPanel">
       <div class="card">
-        <h3 style="margin-top:0">Add New Project</h3>
+        <h3 style="margin-top:0">Add Project</h3>
         <div class="form-grid">
           <div class="field span-2"><label>Date</label><input id="projectDate" type="date"></div>
           <div class="field span-2"><label>Cost Center</label><input id="projectCostCenter"></div>
@@ -177,6 +127,11 @@
           <div class="field span-2"><label>Monthly Straightline Budget</label><input id="projectMonthlyStraightline" type="number" min="0" step="0.01"></div>
           <div class="field span-2"><label>Daily Projected Budget</label><input id="projectDailyProjected" type="number" min="0" step="0.01"></div>
           <div class="field span-2"><label>Daily Straightline Budget</label><input id="projectDailyStraightline" type="number" min="0" step="0.01"></div>
+          <div class="field span-2"><label>Daily Revenue</label><input id="projectDailyRevenue" type="number" min="0" step="0.01"></div>
+          <div class="field span-2"><label>Invoices Issued</label><input id="projectInvoices" type="number" min="0" step="0.01"></div>
+          <div class="field span-2"><label>Payments Received</label><input id="projectPayments" type="number" min="0" step="0.01"></div>
+          <div class="field span-2"><label>Confirmed</label><input id="projectConfirmed" type="number" min="0" step="0.01"></div>
+          <div class="field span-2"><label>Forecast</label><input id="projectForecast" type="number" min="0" step="0.01"></div>
           <div class="field span-12"><button id="saveProjectBtn" type="button">Add Project</button></div>
         </div>
       </div>
@@ -193,13 +148,21 @@
           <div class="table-wrap"><table id="entriesTable"></table></div>
         </div>
       </div>
+      <div class="grid two" style="margin-top:16px">
+        <div class="card">
+          <h3 style="margin-top:0">Cost center performance</h3>
+          <div class="table-wrap"><table id="costCenterTable"></table></div>
+        </div>
+        <div class="card">
+          <h3 style="margin-top:0">Project variance</h3>
+          <div class="table-wrap"><table id="projectVarianceTable"></table></div>
+        </div>
+      </div>
     </div>
   </div>
 
   <script>
-    // IMPORTANT: Replace this URL with your deployed Apps Script URL after deploying
-    // The URL will look like: https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec
-    const DEFAULT_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzRfZPnaonlJcy3MwRhgHMJ-n1VfgF8nber_qxFSnC1M-wTLdWow15UEbVn1nWq8WPm/exec';
+    const DEFAULT_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz1mB3zyjwpUqabT-X9LcADgNBvS2ZDpy9AgSIWglqGyXYAnek06Q5TiTBg5gnlWqEK/exec';
     const SCRIPT_URL = resolveScriptUrl_();
     const state = { data: null, charts: {} };
     const $ = id => document.getElementById(id);
@@ -210,11 +173,9 @@
 
     function resolveScriptUrl_() {
       const urlFromQuery = new URLSearchParams(window.location.search).get('scriptUrl');
-      const urlFromStorage = localStorage.getItem('MANAGER_DASHBOARD_SCRIPT_URL');
+      const urlFromStorage = localStorage.getItem('ONPOINT_SCRIPT_URL');
       const candidate = urlFromQuery || urlFromStorage || DEFAULT_SCRIPT_URL;
-      if (candidate && candidate.startsWith('https://script.google.com/macros/s/') && candidate.endsWith('/exec')) {
-        localStorage.setItem('MANAGER_DASHBOARD_SCRIPT_URL', candidate);
-      }
+      if (candidate && candidate.startsWith('https://script.google.com/macros/s/') && candidate.endsWith('/exec')) localStorage.setItem('ONPOINT_SCRIPT_URL', candidate);
       return candidate;
     }
 
@@ -228,20 +189,17 @@
       el.className = `toast ${type}`;
       el.textContent = message;
       wrap.appendChild(el);
-      setTimeout(() => { el.remove(); }, 2800);
+      setTimeout(() => el.remove(), 2800);
     }
 
-    function badgeClass(value) {
-      if (value >= 100) return 'ok';
-      if (value >= 80) return 'warn';
-      return 'bad';
-    }
+    function badgeClass(value) { return value >= 100 ? 'ok' : value >= 80 ? 'warn' : 'bad'; }
+    function badge(v) { return `<span class="badge ${badgeClass(v)}">${v}%</span>`; }
 
     async function loadDashboard() {
       if (!validateScriptUrl_(SCRIPT_URL)) {
         $('connBadge').className = 'badge bad';
         $('connBadge').textContent = 'Script URL missing';
-        showToast('Add a valid Apps Script /exec URL in the HTML or pass ?scriptUrl=YOUR_URL in the browser address bar.', 'error');
+        showToast('Add a valid Apps Script /exec URL in the HTML or pass ?scriptUrl=YOUR_URL', 'error');
         return;
       }
       const params = new URLSearchParams({
@@ -254,15 +212,10 @@
       try {
         $('connBadge').className = 'badge warn';
         $('connBadge').textContent = 'Loading';
-        const res = await fetch(`${SCRIPT_URL}?${params.toString()}`, { method:'GET', mode:'cors', headers:{ 'Accept':'application/json,text/plain,*/*' } });
+        const res = await fetch(`${SCRIPT_URL}?${params.toString()}`);
         const raw = await res.text();
         let data;
-        try {
-          data = JSON.parse(raw);
-        } catch(parseErr) {
-          throw new Error('Apps Script did not return valid JSON. Re-deploy the web app and make sure the SCRIPT_URL is the /exec URL, not /dev.');
-        }
-        if (!data || typeof data !== 'object') throw new Error('No dashboard response returned from Apps Script.');
+        try { data = JSON.parse(raw); } catch { throw new Error('Apps Script did not return valid JSON. Use the /exec URL.'); }
         if (!data.success) throw new Error(data.error || 'Load failed');
         state.data = Object.assign({ headline:{}, tables:{}, charts:{}, options:{} }, data);
         bindOptions(state.data.options || {});
@@ -273,7 +226,6 @@
         $('connBadge').className = 'badge bad';
         $('connBadge').textContent = 'Connection Failed';
         showToast(err.message, 'error');
-        console.error(err);
       }
     }
 
@@ -295,24 +247,18 @@
       el.innerHTML = list.map(x => `<option value="${esc(x)}" ${x === current ? 'selected' : ''}>${esc(x)}</option>`).join('');
     }
 
-    function renderAll() {
-      renderKpis();
-      renderExecutive();
-      renderBilling();
-      renderProgress();
-      renderTables();
-      renderCharts();
-    }
+    function renderAll() { renderKpis(); renderExecutive(); renderBilling(); renderProgress(); renderTables(); renderCharts(); }
 
     function renderKpis() {
       const h = state.data.headline;
       $('headlineKpis').innerHTML = [
-        ['Daily Actual', h.dailyRevenue, `${h.actualVsProjectedPct}% vs projected`],
+        ['Daily Revenue', h.dailyRevenue, `${h.actualVsProjectedPct}% vs projected`],
         ['Projected Budget', h.projectedBudget, `${h.actualVsStraightlinePct}% vs straight-line`],
-        ['Straight-line Budget', h.straightlineBudget, 'Scaled by filter'],
-        ['Total Confirmed', h.confirmed, 'From April Projected'],
-        ['Total Forecast', h.forecast, 'From April Projected']
-      ].map(x => `<div class="kpi"><div class="label">${esc(x[0])}</div><div class="value">${money(x[1])}</div><div class="sub">${esc(x[2])}</div></div>`).join('');
+        ['Straightline Budget', h.straightlineBudget, 'From Manager Dashboard'],
+        ['Total Confirmed', h.confirmed, 'From totals sheet'],
+        ['Total Forecast', h.forecast, 'From totals sheet'],
+        ['Total Orders', (Number(h.confirmed || 0) + Number(h.forecast || 0)), 'Confirmed + Forecast']
+      ].map(x => `<div class="kpi"><div class="label">${esc(x[0])}</div><div class="value">${money(x[1])}</div><div class="sub">${esc(String(x[2]))}</div></div>`).join('');
     }
 
     function renderExecutive() {
@@ -321,8 +267,8 @@
         ['Actual', money(h.dailyRevenue)],
         ['Projected', money(h.projectedBudget)],
         ['Straight-line', money(h.straightlineBudget)],
-        ['Actual vs Projected', `<span class="badge ${badgeClass(h.actualVsProjectedPct)}">${h.actualVsProjectedPct}%</span>`],
-        ['Actual vs Straight-line', `<span class="badge ${badgeClass(h.actualVsStraightlinePct)}">${h.actualVsStraightlinePct}%</span>`]
+        ['Actual vs Projected', badge(h.actualVsProjectedPct)],
+        ['Actual vs Straight-line', badge(h.actualVsStraightlinePct)]
       ];
       $('execStats').innerHTML = cards.map(c => `<div class="kpi"><div class="label">${esc(c[0])}</div><div class="value">${c[1]}</div></div>`).join('');
     }
@@ -343,77 +289,30 @@
       $('progressCards').innerHTML = rows.map(r => {
         const proj = Math.max(0, Math.min(100, r.actualVsProjectedPct || 0));
         const straight = Math.max(0, Math.min(100, r.actualVsStraightlinePct || 0));
-        return `<div class="progress-card">
-          <h4 style="margin:0 0 10px">${esc(r.costCenter)}</h4>
-          <div class="progress-row"><div class="progress-head"><span>Actual vs Projected</span><strong>${proj}%</strong></div><div class="progress good"><div style="width:${proj}%"></div></div></div>
-          <div class="progress-row"><div class="progress-head"><span>Actual vs Straight-line</span><strong>${straight}%</strong></div><div class="progress alt"><div style="width:${straight}%"></div></div></div>
-          <div class="mini" style="margin-top:10px">Actual ${money(r.actual)} · Projected ${money(r.projected)} · Straight-line ${money(r.straightline)}</div>
-        </div>`;
+        return `<div class="progress-card"><h4 style="margin:0 0 10px">${esc(r.costCenter)}</h4><div class="progress-row"><div class="progress-head"><span>Actual vs Projected</span><strong>${proj}%</strong></div><div class="progress good"><div style="width:${proj}%"></div></div></div><div class="progress-row"><div class="progress-head"><span>Actual vs Straight-line</span><strong>${straight}%</strong></div><div class="progress alt"><div style="width:${straight}%"></div></div></div><div style="margin-top:10px;color:var(--muted);font-size:12px">Actual ${money(r.actual)} · Projected ${money(r.projected)} · Straight-line ${money(r.straightline)}</div></div>`;
       }).join('');
     }
 
     function renderTables() {
-      renderTable($('managerTable'),
-        ['Manager','Actual','Projected','Straight-line','Actual vs Projected %','Actual vs Straight-line %'],
-        (state.data.tables.managerPerformance || []).map(r => [
-          r.manager, money(r.actual), money(r.projected), money(r.straightline),
-          badge(r.actualVsProjectedPct), badge(r.actualVsStraightlinePct)
-        ])
-      );
-      renderTable($('costCenterTable'),
-        ['Cost Center','Actual','Projected','Straight-line','Actual vs Projected %','Actual vs Straight-line %'],
-        (state.data.tables.costCenterPerformance || []).map(r => [
-          r.costCenter, money(r.actual), money(r.projected), money(r.straightline),
-          badge(r.actualVsProjectedPct), badge(r.actualVsStraightlinePct)
-        ])
-      );
-      renderTable($('projectVarianceTable'),
-        ['Project','Manager','Cost Center','Actual','Projected','Straight-line','Bal. to Invoice'],
-        (state.data.tables.projectVariance || []).map(r => [
-          r.projectName, r.projectManager, r.costCenter, money(r.actual), money(r.projected), money(r.straightline), money(r.balanceToInvoice)
-        ])
-      );
-      renderTable($('entriesTable'),
-        ['Date','Project','Manager','Cost Center','Daily Revenue','Invoices','Payments','Balance'],
-        (state.data.tables.revenueEntries || []).map(r => [
-          r.date, r.projectName, r.projectManager, r.costCenter, money(r.dailyRevenue), money(r.invoicesIssued), money(r.paymentsReceived), money(r.balanceToInvoice)
-        ])
-      );
+      renderTable($('managerTable'), ['Manager','Actual','Projected','Straight-line','Actual vs Projected %','Actual vs Straight-line %'], (state.data.tables.managerPerformance || []).map(r => [r.manager, money(r.actual), money(r.projected), money(r.straightline), badge(r.actualVsProjectedPct), badge(r.actualVsStraightlinePct)]));
+      renderTable($('costCenterTable'), ['Cost Center','Actual','Projected','Straight-line','Actual vs Projected %','Actual vs Straight-line %'], (state.data.tables.costCenterPerformance || []).map(r => [r.costCenter, money(r.actual), money(r.projected), money(r.straightline), badge(r.actualVsProjectedPct), badge(r.actualVsStraightlinePct)]));
+      renderTable($('projectVarianceTable'), ['Project','Manager','Cost Center','Actual','Projected','Straight-line','Bal. to Invoice'], (state.data.tables.projectVariance || []).map(r => [r.projectName, r.projectManager, r.costCenter, money(r.actual), money(r.projected), money(r.straightline), money(r.balanceToInvoice)]));
+      renderTable($('entriesTable'), ['Date','Cost Center','Category','Project Manager','Project Name','Monthly Projected Budget','Monthly Straightline Budget','Daily Projected Budget','Daily Straightline Budget','Daily Revenue','Invoices Issued','Payments Received','Confirmed','Forecast'], (state.data.tables.revenueEntries || []).map(r => [r.date, r.costCenter, r.category, r.projectManager, r.projectName, money(r.monthlyProjectedBudget), money(r.monthlyStraightlineBudget), money(r.dailyProjectedBudget), money(r.dailyStraightlineBudget), money(r.dailyRevenue), money(r.invoicesIssued), money(r.paymentsReceived), money(r.confirmed), money(r.forecast)]));
     }
 
     function renderTable(el, headers, rows) {
-      el.innerHTML = `<thead><tr>${headers.map(h => `<th>${esc(h)}</th>`).join('')}</thead><tbody>${rows.length ? rows.map(r => `<tr>${r.map(c => `<td>${c}</td>`).join('')}</tr>`).join('') : `<tr><td colspan="${headers.length}" class="muted">No data</td></tr>`}</tbody>`;
-    }
-
-    function badge(v) {
-      return `<span class="badge ${badgeClass(v)}">${v}%</span>`;
+      el.innerHTML = `<thead><tr>${headers.map(h => `<th>${esc(h)}</th>`).join('')}</tr></thead><tbody>${rows.length ? rows.map(r => `<tr>${r.map(c => `<td>${c}</td>`).join('')}</tr>`).join('') : `<tr><td colspan="${headers.length}" style="color:var(--muted)">No data</td></tr>`}</tbody>`;
     }
 
     function renderCharts() {
-      renderChart('varianceChart','bar',{
-        labels:['Actual','Projected','Straight-line'],
-        datasets:[{label:'Totals',data:[state.data.headline.dailyRevenue,state.data.headline.projectedBudget,state.data.headline.straightlineBudget]}]
-      });
-      renderChart('managerChart','bar',{
-        labels:(state.data.charts.managerPerformance || []).map(r => r.manager),
-        datasets:[
-          {label:'Actual vs Projected %',data:(state.data.charts.managerPerformance || []).map(r => r.actualVsProjectedPct)},
-          {label:'Actual vs Straight-line %',data:(state.data.charts.managerPerformance || []).map(r => r.actualVsStraightlinePct)}
-        ]
-      });
-      renderChart('costCenterChart','bar',{
-        labels:(state.data.charts.costCenterPerformance || []).map(r => r.costCenter),
-        datasets:[
-          {label:'Actual',data:(state.data.charts.costCenterPerformance || []).map(r => r.actual)},
-          {label:'Projected',data:(state.data.charts.costCenterPerformance || []).map(r => r.projected)},
-          {label:'Straight-line',data:(state.data.charts.costCenterPerformance || []).map(r => r.straightline)}
-        ]
-      });
+      renderChart('varianceChart','bar',{labels:['Actual','Projected','Straight-line'],datasets:[{label:'Totals',data:[state.data.headline.dailyRevenue,state.data.headline.projectedBudget,state.data.headline.straightlineBudget]}]});
+      renderChart('managerChart','bar',{labels:(state.data.charts.managerPerformance || []).map(r => r.manager),datasets:[{label:'Actual vs Projected %',data:(state.data.charts.managerPerformance || []).map(r => r.actualVsProjectedPct)},{label:'Actual vs Straight-line %',data:(state.data.charts.managerPerformance || []).map(r => r.actualVsStraightlinePct)}]});
     }
 
     function renderChart(id, type, data) {
       if (state.charts[id]) state.charts[id].destroy();
-      state.charts[id] = new Chart($(id).getContext('2d'), { type, data, options:{ responsive:true, maintainAspectRatio:false } });
+      const ctx = $(id).getContext('2d');
+      state.charts[id] = new Chart(ctx, { type, data, options:{ responsive:true, maintainAspectRatio:false } });
     }
 
     async function saveEntry() {
@@ -435,10 +334,9 @@
         forecast:num($('entryForecast').value)
       };
       if (!payload.projectName || !payload.costCenter) return showToast('Enter at least Cost Center and Project Name.', 'error');
-      const res = await fetch(SCRIPT_URL, { method:'POST', mode:'cors', headers:{'Content-Type':'text/plain;charset=utf-8','Accept':'application/json,text/plain,*/*'}, body:JSON.stringify(payload) });
+      const res = await fetch(SCRIPT_URL, { method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body:JSON.stringify(payload) });
       const raw = await res.text();
-      let data;
-      try { data = JSON.parse(raw); } catch (e) { throw new Error('Apps Script save response was not valid JSON. Confirm the deployed URL ends with /exec and the web app is re-deployed.'); }
+      let data; try { data = JSON.parse(raw); } catch { throw new Error('Apps Script save response was not valid JSON.'); }
       if (!data.success) throw new Error(data.error || 'Save failed');
       showToast(data.message || 'Saved successfully');
       await loadDashboard();
@@ -455,13 +353,17 @@
         monthlyProjectedBudget:num($('projectMonthlyProjected').value),
         monthlyStraightlineBudget:num($('projectMonthlyStraightline').value),
         dailyProjectedBudget:num($('projectDailyProjected').value),
-        dailyStraightlineBudget:num($('projectDailyStraightline').value)
+        dailyStraightlineBudget:num($('projectDailyStraightline').value),
+        dailyRevenue:num($('projectDailyRevenue').value),
+        invoicesIssued:num($('projectInvoices').value),
+        paymentsReceived:num($('projectPayments').value),
+        confirmed:num($('projectConfirmed').value),
+        forecast:num($('projectForecast').value)
       };
       if (!payload.projectName || !payload.projectManager) return showToast('Enter Project Name and Project Manager.', 'error');
-      const res = await fetch(SCRIPT_URL, { method:'POST', mode:'cors', headers:{'Content-Type':'text/plain;charset=utf-8','Accept':'application/json,text/plain,*/*'}, body:JSON.stringify(payload) });
+      const res = await fetch(SCRIPT_URL, { method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body:JSON.stringify(payload) });
       const raw = await res.text();
-      let data;
-      try { data = JSON.parse(raw); } catch (e) { throw new Error('Apps Script save response was not valid JSON. Confirm the deployed URL ends with /exec and the web app is re-deployed.'); }
+      let data; try { data = JSON.parse(raw); } catch { throw new Error('Apps Script save response was not valid JSON.'); }
       if (!data.success) throw new Error(data.error || 'Save failed');
       showToast(data.message || 'Project added successfully');
       await loadDashboard();
@@ -474,10 +376,7 @@
       $(tab.dataset.panel).classList.add('active');
     }));
 
-    ['periodFilter','monthFilter','costCenterFilter','managerFilter'].forEach(id => {
-      $(id).addEventListener('change', loadDashboard);
-    });
-
+    ['periodFilter','monthFilter','costCenterFilter','managerFilter'].forEach(id => $(id).addEventListener('change', loadDashboard));
     $('refreshBtn').addEventListener('click', loadDashboard);
     $('saveEntryBtn').addEventListener('click', async () => { try { await saveEntry(); } catch (e) { showToast(e.message, 'error'); } });
     $('saveProjectBtn').addEventListener('click', async () => { try { await saveProject(); } catch (e) { showToast(e.message, 'error'); } });
