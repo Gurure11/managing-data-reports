@@ -72,7 +72,7 @@
     <div class="card hero">
       <div>
         <h2 style="margin:0 0 8px">Live Google Sheets dashboard</h2>
-        <div class="muted">Actual is read from Revenue sheet ID <strong>1wl599p4871pR2tOZmIuq44pdDy6N2PggKrmMrfD8wv0</strong> column <strong>E / Actuals</strong>. Revenue projected per period is read from Revenue column <strong>F / Budget</strong> as a monthly budget, then scaled as Daily = Monthly ÷ 20, Weekly = Monthly ÷ 4, Quarterly = Monthly × 3, Yearly = Monthly × 12. Straight-line Budget is read from the <strong>Budgets</strong> sheet monthly columns such as <strong>Mar-26</strong> and <strong>Apr-26</strong> and scaled by the selected period. Total Confirmed, Total Forecast, Total Orders, MTD, Group YTD and Group BTYE are read from the Orders sheet.</div>
+        <div class="muted">Actual is read from Revenue sheet ID <strong>1wl599p4871pR2tOZmIuq44pdDy6N2PggKrmMrfD8wv0</strong> column <strong>E / Actuals</strong>. Revenue projected per period is read from Revenue column <strong>F / Budget</strong> as a monthly budget, then scaled as Daily = Monthly ÷ 20, Weekly = Monthly ÷ 4, Quarterly = Monthly × 3, Yearly = Monthly × 12. Straight-line Budget is read from the updated project sheet month columns such as <strong>Mar-26</strong>, <strong>Apr-26</strong>, <strong>May-26</strong> and the other monthly columns. Total Confirmed is the sum of <strong>Amount</strong> for rows with <strong>Status = Confirmed</strong>, Total Forecast is the sum of <strong>Amount</strong> for rows with <strong>Status = Forecast</strong>, and the first summary row is excluded.</div>
       </div>
       <div class="toolbar">
         <select id="periodFilter"></select>
@@ -314,6 +314,14 @@ function filteredOrders(period = state.filters.period){
 function filteredInvoices(period = state.filters.period){ return state.invoices.filter(r => { if (!inPeriod(r.Date, period)) return false; if (state.filters.division !== 'All' && normalizeCostCenterName(r.CostCenter || r.Division) !== state.filters.division) return false; if (state.filters.manager !== 'All' && text(r.Manager) !== state.filters.manager) return false; if (state.filters.search && !`${r.ProjectName} ${r.Manager} ${r.CostCenter}`.toLowerCase().includes(state.filters.search.toLowerCase())) return false; return true; }); }
 function filteredStraightline(period = state.filters.period){ return state.straightline.filter(r => { const hasDate = !!normaliseDate(r.Date); if (hasDate && !inPeriod(r.Date, period)) return false; if (state.filters.division !== 'All' && normalizeCostCenterName(r.CostCenter || r.Division) !== state.filters.division) return false; if (state.filters.manager !== 'All' && text(r.Manager) !== state.filters.manager) return false; if (state.filters.search && !`${r.ProjectName} ${r.Manager} ${r.CostCenter}`.toLowerCase().includes(state.filters.search.toLowerCase())) return false; return true; }); }
 function projectMargin(projectName, manager=''){ const match = state.projects.find(p => lower(p.ProjectName)===lower(projectName) && (!manager || lower(p.Manager)===lower(manager))) || state.projects.find(p => lower(p.ProjectName)===lower(projectName)); return num(match ? match.Margin : 0); }
+function projectStatusValue(r){ return lower(r.Status || r.status || ''); }
+function projectAmountValue(r){ return num(r.Amount || r.TotalIncome || r.totalIncome || r.Total || 0); }
+function isProjectSummaryRow(r){
+  return !text(r.Manager) || !text(r.ProjectName) || !projectStatusValue(r) || /on point on time/i.test(text(r.Division || r.Category)) && !text(r.Manager);
+}
+function projectOrderRows(){
+  return filteredProjects().filter(r => !isProjectSummaryRow(r) && projectAmountValue(r) !== 0);
+}
 function revenueActualValue(r){ return num((r && (r.Actual ?? r['Actual'] ?? r.Actuals ?? r['Actuals'] ?? r.E ?? r['E'] ?? r.Amount ?? r['Amount'])) ?? 0); }
 function revenueDailyBudgetValue(r){ return num((r && (r.DailyBudget ?? r['DailyBudget'] ?? r['Daily Budget'] ?? r.dailyBudget ?? r['I'] ?? r.I)) ?? 0); }
 function revenueActualForChart(r){ return revenueActualValue(r); }
@@ -452,13 +460,7 @@ function costCenterPeriodRows(period = state.filters.period){
 
 
 function ordersConfirmedRowsBase(){
-  return state.orders.filter(o => {
-    if (lower(o.Status) !== 'confirmed') return false;
-    if (state.filters.division !== 'All' && normalizeCostCenterName(o.Division || o.CostCenter) !== state.filters.division) return false;
-    if (state.filters.manager !== 'All' && text(o.Manager) !== state.filters.manager) return false;
-    if (state.filters.search && !`${o.ProjectName} ${o.Manager} ${o.Division || o.CostCenter}`.toLowerCase().includes(state.filters.search.toLowerCase())) return false;
-    return true;
-  });
+  return projectOrderRows().filter(o => projectStatusValue(o)==='confirmed');
 }
 function performanceSnapshot(period){
   const revenueRows = state.revenue.filter(r => {
@@ -545,8 +547,8 @@ function periodBudgetMonthKeys(period, refDate = new Date()){
 function budgetKeyAliases(key){
   const compact = key.replace(/-/g,'');
   const spaced = key.replace(/-/g,' ');
-  const noCentury = compact.replace(/20(\d{2})/g,'$1');
-  return [key, compact, spaced, noCentury, compact.replace(/(\D)(\d+)/,'$1 $2'), spaced.replace(/20(\d{2})/g,'$1')];
+  const altCompact = compact.replace('2026','26').replace('2027','27');
+  return [key, compact, spaced, altCompact, compact.replace(/(\D)(\d+)/,'$1 $2')];
 }
 function pickBudgetValueFromProjectRow(row, key){
   const aliases = budgetKeyAliases(key);
@@ -959,10 +961,10 @@ function populateFilters(){
   applyRememberedDailyBudget();
 }
 function renderKPIs(){
-  const orders = filteredOrders(state.filters.period);
-  const confirmed = orders.filter(o => lower(o.Status)==='confirmed').reduce((s,o)=>s+num(o.TotalIncome || o.Amount || o.ConfirmedValue),0);
-  const forecast = orders.filter(o => lower(o.Status)==='forecast').reduce((s,o)=>s+num(o.TotalIncome || o.Amount || o.ForecastValue),0);
-  const totalOrders = orders.reduce((s,o)=>s+num(o.TotalIncome || o.Amount || 0),0);
+  const orders = projectOrderRows();
+  const confirmed = orders.filter(o => projectStatusValue(o)==='confirmed').reduce((s,o)=>s+projectAmountValue(o),0);
+  const forecast = orders.filter(o => projectStatusValue(o)==='forecast').reduce((s,o)=>s+projectAmountValue(o),0);
+  const totalOrders = confirmed + forecast;
   const actualSelected = filteredRevenue().reduce((s,r)=>s+revenueActualValue(r),0);
   const ytd = state.revenue.filter(r => {
     if (!inPeriod(r.Date,'Yearly')) return false;
@@ -1023,7 +1025,36 @@ function renderSummary(){
 }
 
 
-function mapProjectRow(r){ return Object.assign({}, r, { CreatedAt: normaliseDate(r.CreatedAt || r.createdAt || r.Date), Division: normalizeCostCenterName(r.Division || r.division || r.CostCenter || r['Cost Center']), Manager: text(r.Manager || r.manager || r['Project Manager'] || r['Project manager'] || r.ProjectManager || r['Manager Name'] || r.PM), ProjectName: text(r.ProjectName || r.projectName || r['Project Name']), Location: text(r.Location || r.location), Status: text(r.Status || r.status || 'Confirmed'), TotalIncome: num(r.TotalIncome || r.totalIncome || r['Total Income'] || r.Amount), Margin: num(r.Margin || r.margin || r['Margin %']), StartDate: normaliseDate(r.StartDate || r.startDate), EndDate: normaliseDate(r.EndDate || r.endDate), Remarks: text(r.Remarks || r.remarks) }); }
+function mapProjectRow(r){
+  const out = Object.assign({}, r, {
+    CreatedAt: normaliseDate(r.CreatedAt || r.createdAt || r.Date || rowVal(r,0)),
+    Division: normalizeCostCenterName(r.Division || r.division || r.Category || r.CostCenter || r['Cost Center'] || rowVal(r,0)),
+    Manager: text(r.Manager || r.manager || r['Project Manager'] || r['Project manager'] || r.ProjectManager || r['Manager Name'] || r.PM || rowVal(r,1)),
+    ProjectName: text(r.ProjectName || r.projectName || r.Project || r['Project Name'] || rowVal(r,2)),
+    Location: text(r.Location || r.location),
+    Status: text(r.Status || r.status || rowVal(r,3)),
+    TotalIncome: num(r.TotalIncome || r.totalIncome || r['Total Income'] || r.Amount || rowVal(r,4)),
+    Amount: num(r.Amount || r.TotalIncome || r.totalIncome || rowVal(r,4)),
+    Margin: num(r.Margin || r.margin || r['Margin %']),
+    StartDate: normaliseDate(r.StartDate || r.startDate),
+    EndDate: normaliseDate(r.EndDate || r.endDate),
+    Remarks: text(r.Remarks || r.remarks),
+    'Mar-26': num(r['Mar-26'] || r['Mar26'] || r['Mar 26'] || rowVal(r,6)),
+    'Apr-26': num(r['Apr-26'] || r['Apr26'] || r['Apr 26'] || rowVal(r,7)),
+    'May-26': num(r['May-26'] || r['May26'] || r['May 26'] || rowVal(r,8)),
+    'Jun-26': num(r['Jun-26'] || r['Jun26'] || r['Jun 26'] || rowVal(r,9)),
+    'Jul-26': num(r['Jul-26'] || r['Jul26'] || r['Jul 26'] || rowVal(r,10)),
+    'Aug-26': num(r['Aug-26'] || r['Aug26'] || r['Aug 26'] || rowVal(r,11)),
+    'Sep-26': num(r['Sep-26'] || r['Sep26'] || r['Sep 26'] || rowVal(r,12)),
+    'Oct-26': num(r['Oct-26'] || r['Oct26'] || r['Oct 26'] || rowVal(r,13)),
+    'Nov-26': num(r['Nov-26'] || r['Nov26'] || r['Nov 26'] || rowVal(r,14)),
+    'Dec-26': num(r['Dec-26'] || r['Dec26'] || r['Dec 26'] || rowVal(r,15)),
+    'Jan-27': num(r['Jan-27'] || r['Jan27'] || r['Jan 27'] || rowVal(r,16)),
+    'Feb-27': num(r['Feb-27'] || r['Feb27'] || r['Feb 27'] || rowVal(r,17)),
+    Total: num(r.Total || rowVal(r,18))
+  });
+  return out;
+}
 function mapInvoiceRow(r){ return { Date: normaliseDate(r.Date || r.date), Manager: text(r.Manager || r.manager), ProjectName: text(r.ProjectName || r.projectName), InvoiceNumber: text(r.InvoiceNumber || r.invoiceNumber || r['Invoice No']), Amount: num(r.Amount || r.amount), PaymentReceived: String(r.PaymentReceived || r.paymentReceived).toLowerCase()==='true' || r.PaymentReceived===true, PaymentDate: normaliseDate(r.PaymentDate || r.paymentDate), CostCenter: normalizeCostCenterName(r.CostCenter || r.costCenter || r.Division), Notes: text(r.Notes || r.notes) }; }
 function mapManagerBudgetRow(r){ return { ProjectManager: text(r.ProjectManager || r.Manager || r.manager), CostCenter: normalizeCostCenterName(r.CostCenter || r.Division), Actual: num(r.Actual || r.Actuals || r.Amount), Budget: num(r.Budget || r.Projected || r.projected), StraightlineBudget: num(r.StraightlineBudget || r['Straightline Budget'] || r['Straight-line Budget']), PerformancePct: num(r.PerformancePct || r['% PERFORMANCE'] || r['% PERFOMANCE']) }; }
 function mapStraightlineRow(r){ return { Date: normaliseDate(r.Date || r.date || r.CreatedAt), Manager: text(r.Manager || r.manager || r.ProjectManager || r['Project Manager'] || r['Project manager'] || r['Manager Name'] || r.PM), CostCenter: normalizeCostCenterName(r.CostCenter || r.costCenter || r.Division || r['Cost Center']), ProjectName: text(r.ProjectName || r.projectName || r['Project Name']), Projected: num(r.Projected || r['Projected Budget'] || r['Projected Amount'] || r.Budget || r.projected || r.Target), StraightlineBudget: num(r.StraightlineBudget || r['Straightline Budget'] || r['Straight-line Budget'] || r['Straight Line Budget'] || r.Straightline || r['Straight Line']) }; }
@@ -1054,7 +1085,7 @@ function mapRevenueRow(r){
 }
 
 function mapProjectRow(r){
-  const base = repairProjectShape({
+  return repairProjectShape({
     CreatedAt: normaliseDate(r.CreatedAt || r.createdAt || r.Date || rowVal(r,0)),
     Division: normalizeCostCenterName(r.Division || r.division || r.CostCenter || r['Cost Center'] || rowVal(r,1)),
     Manager: text(r.Manager || r.manager || r['Project Manager'] || r.ProjectManager || rowVal(r,2)),
@@ -1067,13 +1098,6 @@ function mapProjectRow(r){
     EndDate: normaliseDate(r.EndDate || r.endDate || rowVal(r,9)),
     Remarks: text(r.Remarks || r.remarks || rowVal(r,10))
   });
-  const out = Object.assign({}, r, base);
-  Object.keys(r || {}).forEach(k => {
-    if (/^(Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec|Jan|Feb)[ -]?\d{2}$/i.test(String(k).trim())) {
-      out[String(k).trim()] = num(r[k]);
-    }
-  });
-  return out;
 }
 
 function mapInvoiceRow(r){ return { Date: normaliseDate(r.Date || r.date || rowVal(r,0)), Manager: text(r.Manager || r.manager || rowVal(r,1)), ProjectName: text(r.ProjectName || r.projectName || rowVal(r,2)), InvoiceNumber: text(r.InvoiceNumber || r.invoiceNumber || r['Invoice No'] || rowVal(r,3)), Amount: num(r.Amount || r.amount || rowVal(r,4)), PaymentReceived: String(r.PaymentReceived || r.paymentReceived || rowVal(r,5)).toLowerCase()==='true' || r.PaymentReceived===true, PaymentDate: normaliseDate(r.PaymentDate || r.paymentDate || rowVal(r,6)), CostCenter: normalizeCostCenterName(r.CostCenter || r.costCenter || r.Division || rowVal(r,7)), Notes: text(r.Notes || r.notes || rowVal(r,8)) }; }
