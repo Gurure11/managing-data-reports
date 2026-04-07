@@ -73,7 +73,7 @@
         <h2 style="margin:0 0 8px">Live Google Sheets dashboard</h2>
         <div class="muted">
           This dashboard mirrors the attached layout and now reads primary operational data from <strong>Manager Dashboard</strong>
-          and confirmed / forecast totals from <strong>ProjectsA</strong> using <strong>Amount</strong> values where <strong>Status</strong> is Confirmed or Forecast. Daily Actual comes from <strong>Daily Revenue</strong>,
+          and confirmed / forecast totals from <strong>April Projected</strong>. Daily Actual comes from <strong>Daily Revenue</strong>,
           projected and straight-line are scaled from their daily and monthly values, and the selected month can be changed even for past months.
         </div>
       </div>
@@ -127,11 +127,11 @@
       <div class="grid two">
         <div class="card">
           <h3 style="margin-top:0">Cost center performance</h3>
-          <div class="table-wrap"><table id="costCenterTable"></table></div>
+          <div class="table-wrap"><table id="costCenterTable"></td></div>
         </div>
         <div class="card">
           <h3 style="margin-top:0">Project variance</h3>
-          <div class="table-wrap"><table id="projectVarianceTable"></table></div>
+          <div class="table-wrap"><table id="projectVarianceTable"></tr></div>
         </div>
       </div>
       <div class="card section-gap">
@@ -197,7 +197,9 @@
   </div>
 
   <script>
-    const DEFAULT_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbya3JEJn7-0mFldcVUIeRugQS2XVwd0pvtZj0c6_7naA0CCQmAWHCDeuyw53WLu-FIQ/exec';
+    // IMPORTANT: Replace this URL with your deployed Apps Script URL after deploying
+    // The URL will look like: https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec
+    const DEFAULT_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzRfZPnaonlJcy3MwRhgHMJ-n1VfgF8nber_qxFSnC1M-wTLdWow15UEbVn1nWq8WPm/exec';
     const SCRIPT_URL = resolveScriptUrl_();
     const state = { data: null, charts: {} };
     const $ = id => document.getElementById(id);
@@ -205,7 +207,6 @@
     const num = v => Number(String(v ?? '').replace(/[^0-9.-]/g,'')) || 0;
     const esc = s => String(s ?? '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
     const todayISO = () => new Date().toISOString().slice(0,10);
-
 
     function resolveScriptUrl_() {
       const urlFromQuery = new URLSearchParams(window.location.search).get('scriptUrl');
@@ -309,8 +310,8 @@
         ['Daily Actual', h.dailyRevenue, `${h.actualVsProjectedPct}% vs projected`],
         ['Projected Budget', h.projectedBudget, `${h.actualVsStraightlinePct}% vs straight-line`],
         ['Straight-line Budget', h.straightlineBudget, 'Scaled by filter'],
-        ['Total Confirmed', h.confirmed, 'ProjectsA Amount where Status = Confirmed'],
-        ['Total Forecast', h.forecast, 'ProjectsA Amount where Status = Forecast']
+        ['Total Confirmed', h.confirmed, 'From April Projected'],
+        ['Total Forecast', h.forecast, 'From April Projected']
       ].map(x => `<div class="kpi"><div class="label">${esc(x[0])}</div><div class="value">${money(x[1])}</div><div class="sub">${esc(x[2])}</div></div>`).join('');
     }
 
@@ -381,7 +382,7 @@
     }
 
     function renderTable(el, headers, rows) {
-      el.innerHTML = `<thead><tr>${headers.map(h => `<th>${esc(h)}</th>`).join('')}</tr></thead><tbody>${rows.length ? rows.map(r => `<tr>${r.map(c => `<td>${c}</td>`).join('')}</tr>`).join('') : `<tr><td colspan="${headers.length}" class="muted">No data</td></tr>`}</tbody>`;
+      el.innerHTML = `<thead><tr>${headers.map(h => `<th>${esc(h)}</th>`).join('')}</thead><tbody>${rows.length ? rows.map(r => `<tr>${r.map(c => `<td>${c}</td>`).join('')}</tr>`).join('') : `<tr><td colspan="${headers.length}" class="muted">No data</td></tr>`}</tbody>`;
     }
 
     function badge(v) {
