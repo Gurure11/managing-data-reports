@@ -197,13 +197,29 @@
   </div>
 
   <script>
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyT9DC2O3WjC3FGydiuygz-I-L3nbqGvVeMzNQq4PK1xhmEQ_gLw97Q7LNoe-5CpR3G/exec';
+    const DEFAULT_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwHvxp1UgU1Il1TnYf6G6dQRM7583O1qoxvftpei5_yOLuGk6W7nCEjCR0c-lUz5npn/exec';
+    const SCRIPT_URL = resolveScriptUrl_();
     const state = { data: null, charts: {} };
     const $ = id => document.getElementById(id);
     const money = v => new Intl.NumberFormat('en-ZA',{style:'currency',currency:'ZAR',maximumFractionDigits:0}).format(Number(v || 0));
     const num = v => Number(String(v ?? '').replace(/[^0-9.-]/g,'')) || 0;
     const esc = s => String(s ?? '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
     const todayISO = () => new Date().toISOString().slice(0,10);
+
+
+    function resolveScriptUrl_() {
+      const urlFromQuery = new URLSearchParams(window.location.search).get('scriptUrl');
+      const urlFromStorage = localStorage.getItem('MANAGER_DASHBOARD_SCRIPT_URL');
+      const candidate = urlFromQuery || urlFromStorage || DEFAULT_SCRIPT_URL;
+      if (candidate && candidate.startsWith('https://script.google.com/macros/s/') && candidate.endsWith('/exec')) {
+        localStorage.setItem('MANAGER_DASHBOARD_SCRIPT_URL', candidate);
+      }
+      return candidate;
+    }
+
+    function validateScriptUrl_(url) {
+      return Boolean(url) && /^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+\/exec(?:\?.*)?$/.test(url);
+    }
 
     function showToast(message, type='success') {
       const wrap = $('toastWrap');
@@ -221,10 +237,10 @@
     }
 
     async function loadDashboard() {
-      if (!SCRIPT_URL || SCRIPT_URL.includes('PASTE_YOUR')) {
+      if (!validateScriptUrl_(SCRIPT_URL)) {
         $('connBadge').className = 'badge bad';
         $('connBadge').textContent = 'Script URL missing';
-        showToast('Paste your Apps Script web app URL into SCRIPT_URL first.', 'error');
+        showToast('Add a valid Apps Script /exec URL in the HTML or pass ?scriptUrl=YOUR_URL in the browser address bar.', 'error');
         return;
       }
       const params = new URLSearchParams({
@@ -237,7 +253,7 @@
       try {
         $('connBadge').className = 'badge warn';
         $('connBadge').textContent = 'Loading';
-        const res = await fetch(`${SCRIPT_URL}?${params.toString()}`);
+        const res = await fetch(`${SCRIPT_URL}?${params.toString()}`, { method:'GET', mode:'cors', headers:{ 'Accept':'application/json,text/plain,*/*' } });
         const raw = await res.text();
         let data;
         try {
@@ -418,8 +434,10 @@
         forecast:num($('entryForecast').value)
       };
       if (!payload.projectName || !payload.costCenter) return showToast('Enter at least Cost Center and Project Name.', 'error');
-      const res = await fetch(SCRIPT_URL, { method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body:JSON.stringify(payload) });
-      const data = await res.json();
+      const res = await fetch(SCRIPT_URL, { method:'POST', mode:'cors', headers:{'Content-Type':'text/plain;charset=utf-8','Accept':'application/json,text/plain,*/*'}, body:JSON.stringify(payload) });
+      const raw = await res.text();
+      let data;
+      try { data = JSON.parse(raw); } catch (e) { throw new Error('Apps Script save response was not valid JSON. Confirm the deployed URL ends with /exec and the web app is re-deployed.'); }
       if (!data.success) throw new Error(data.error || 'Save failed');
       showToast(data.message || 'Saved successfully');
       await loadDashboard();
@@ -439,8 +457,10 @@
         dailyStraightlineBudget:num($('projectDailyStraightline').value)
       };
       if (!payload.projectName || !payload.projectManager) return showToast('Enter Project Name and Project Manager.', 'error');
-      const res = await fetch(SCRIPT_URL, { method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body:JSON.stringify(payload) });
-      const data = await res.json();
+      const res = await fetch(SCRIPT_URL, { method:'POST', mode:'cors', headers:{'Content-Type':'text/plain;charset=utf-8','Accept':'application/json,text/plain,*/*'}, body:JSON.stringify(payload) });
+      const raw = await res.text();
+      let data;
+      try { data = JSON.parse(raw); } catch (e) { throw new Error('Apps Script save response was not valid JSON. Confirm the deployed URL ends with /exec and the web app is re-deployed.'); }
       if (!data.success) throw new Error(data.error || 'Save failed');
       showToast(data.message || 'Project added successfully');
       await loadDashboard();
