@@ -162,7 +162,7 @@
   </div>
 
   <script>
-    const DEFAULT_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz1mB3zyjwpUqabT-X9LcADgNBvS2ZDpy9AgSIWglqGyXYAnek06Q5TiTBg5gnlWqEK/exec';
+    const DEFAULT_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx936C-mcFnWWkUvd3eFTQWT6fBNztji5NWMXSriJe0FbD2tIe4RERXniEU1ySTrIb_/exec';
     const SCRIPT_URL = resolveScriptUrl_();
     const state = { data: null, charts: {} };
     const $ = id => document.getElementById(id);
@@ -232,8 +232,8 @@
     function bindOptions(options) {
       const periods = Array.isArray(options.periods) && options.periods.length ? options.periods : ['Daily','Weekly','Monthly','Quarterly','Yearly'];
       const months = Array.isArray(options.months) && options.months.length ? options.months : [new Date().toISOString().slice(0,7)];
-      const costCenters = Array.isArray(options.costCenters) && options.costCenters.length ? options.costCenters : ['All'];
-      const managers = Array.isArray(options.managers) && options.managers.length ? options.managers : ['All'];
+      const costCenters = Array.isArray(options.costCenters) && options.costCenters.length ? options.costCenters.filter(v => v === 'All' || !/^\d{4}-\d{2}-\d{2}$/.test(String(v||''))) : ['All'];
+      const managers = Array.isArray(options.managers) && options.managers.length ? options.managers.filter(v => v === 'All' || !/^\d{4}-\d{2}-\d{2}$/.test(String(v||''))) : ['All'];
       const projects = Array.isArray(options.projects) ? options.projects : [];
       bindSelect($('periodFilter'), periods, $('periodFilter').value || 'Daily');
       bindSelect($('monthFilter'), months, $('monthFilter').value || new Date().toISOString().slice(0,7));
@@ -256,7 +256,7 @@
         ['Projected Budget', h.projectedBudget, `${h.actualVsStraightlinePct}% vs straight-line`],
         ['Straightline Budget', h.straightlineBudget, 'From Manager Dashboard'],
         ['Total Confirmed', h.confirmed, 'From totals sheet'],
-        ['Total Forecast', h.forecast, 'From totals sheet'],
+        ['Total Forecast', h.forecast, 'From same totals sheet as Confirmed'],
         ['Total Orders', (Number(h.confirmed || 0) + Number(h.forecast || 0)), 'Confirmed + Forecast']
       ].map(x => `<div class="kpi"><div class="label">${esc(x[0])}</div><div class="value">${money(x[1])}</div><div class="sub">${esc(String(x[2]))}</div></div>`).join('');
     }
