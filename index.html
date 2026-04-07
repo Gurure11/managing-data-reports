@@ -6,22 +6,22 @@
   <title>Onpoint Group Dashboard</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
-    :root{--bg:#f5f7fb;--card:#fff;--line:#dbe2ea;--text:#122033;--muted:#5f7187;--primary:#0f172a;--green:#15803d;--amber:#b45309;--red:#b91c1c;--green-bg:#dcfce7;--amber-bg:#fef3c7;--red-bg:#fee2e2;--shadow:0 12px 30px rgba(15,23,42,.08)}
+    :root{--bg:#f5f7fb;--card:#fff;--line:#dbe2ea;--text:#122033;--muted:#5f7187;--primary:#0f172a;--green:#15803d;--amber:#b45309;--red:#b91c1c;--blue:#1d4ed8;--green-bg:#dcfce7;--amber-bg:#fef3c7;--red-bg:#fee2e2;--blue-bg:#dbeafe;--shadow:0 12px 30px rgba(15,23,42,.08)}
     *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:14px/1.45 Arial,sans-serif}
     .wrap{max-width:1500px;margin:0 auto;padding:18px}.card{background:var(--card);border:1px solid var(--line);border-radius:20px;box-shadow:var(--shadow);padding:18px}
-    .topbar,.hero,.toolbar,.kpis,.tabs,.grid,.stats,.form-grid,.progress-cards{display:grid;gap:14px}
-    .topbar{grid-template-columns:1fr auto auto;align-items:center}.hero{grid-template-columns:1.4fr 1fr;margin-top:16px}.toolbar{grid-template-columns:repeat(4,minmax(150px,1fr))}
-    .kpis{grid-template-columns:repeat(6,1fr);margin-top:16px}.grid.two{grid-template-columns:1fr 1fr}.tabs{grid-template-columns:repeat(4,1fr);margin-top:16px}.stats{grid-template-columns:repeat(4,1fr)}.progress-cards{grid-template-columns:repeat(2,1fr)}
+    .topbar,.hero,.toolbar,.kpis,.tabs,.grid,.stats,.form-grid,.progress-cards,.finance-grid{display:grid;gap:14px}
+    .topbar{grid-template-columns:1fr auto auto;align-items:center}.hero{grid-template-columns:1.3fr 1fr;margin-top:16px}.toolbar{grid-template-columns:repeat(5,minmax(140px,1fr))}
+    .kpis{grid-template-columns:repeat(7,1fr);margin-top:16px}.grid.two{grid-template-columns:1fr 1fr}.tabs{grid-template-columns:repeat(4,1fr);margin-top:16px}.stats{grid-template-columns:repeat(4,1fr)}.progress-cards{grid-template-columns:repeat(2,1fr)}.finance-grid{grid-template-columns:repeat(5,1fr)}
     .tab{padding:12px;border:1px solid var(--line);border-radius:14px;background:#eef2f7;cursor:pointer;text-align:center;font-weight:700}.tab.active{background:#fff}.panel{display:none;margin-top:16px}.panel.active{display:block}
-    .kpi{padding:16px;border:1px solid var(--line);border-radius:18px;background:#fff}.kpi .label{color:var(--muted);font-size:12px;text-transform:uppercase;font-weight:700;letter-spacing:.06em}.kpi .value{font-size:28px;font-weight:700;margin-top:8px}.kpi .sub{color:var(--muted);margin-top:4px}
+    .kpi{padding:16px;border:1px solid var(--line);border-radius:18px;background:#fff}.kpi .label{color:var(--muted);font-size:12px;text-transform:uppercase;font-weight:700;letter-spacing:.06em}.kpi .value{font-size:24px;font-weight:700;margin-top:8px}.kpi .sub{color:var(--muted);margin-top:4px}
     input,select,button{width:100%;padding:12px 13px;border:1px solid var(--line);border-radius:14px;background:#fff;font:inherit;color:var(--text)}button{background:var(--primary);color:#fff;cursor:pointer}
     .form-grid{grid-template-columns:repeat(12,1fr)} .field{display:flex;flex-direction:column;gap:6px}.field label{font-size:12px;color:var(--muted);text-transform:uppercase;font-weight:700}
     .span-2{grid-column:span 2}.span-3{grid-column:span 3}.span-4{grid-column:span 4}.span-6{grid-column:span 6}.span-12{grid-column:span 12}
     table{width:100%;border-collapse:collapse}th,td{padding:12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}th{font-size:12px;color:var(--muted);text-transform:uppercase;background:#f8fafc;letter-spacing:.06em}.table-wrap{overflow:auto;border:1px solid var(--line);border-radius:16px;background:#fff}
-    .badge{display:inline-block;padding:5px 10px;border-radius:999px;font-size:12px;font-weight:700}.ok{background:var(--green-bg);color:var(--green)}.warn{background:var(--amber-bg);color:var(--amber)}.bad{background:var(--red-bg);color:var(--red)}
-    .chart-box{height:320px;position:relative}.progress{height:12px;background:#e5e7eb;border-radius:999px;overflow:hidden}.progress>div{height:100%;background:#0f172a}.progress.good>div{background:#15803d}.progress.alt>div{background:#94a3b8}.progress-card{border:1px solid var(--line);border-radius:18px;padding:16px;background:#fff}.progress-row{margin-top:12px}.progress-head{display:flex;justify-content:space-between;gap:10px;margin-bottom:6px}
+    .badge{display:inline-block;padding:5px 10px;border-radius:999px;font-size:12px;font-weight:700}.ok{background:var(--green-bg);color:var(--green)}.warn{background:var(--amber-bg);color:var(--amber)}.bad{background:var(--red-bg);color:var(--red)}.blue{background:var(--blue-bg);color:var(--blue)}
+    .chart-box{height:320px;position:relative}.progress{height:12px;background:#e5e7eb;border-radius:999px;overflow:hidden}.progress>div{height:100%;background:#0f172a}.progress.good>div{background:#15803d}.progress.alt>div{background:#94a3b8}.progress-card,.finance-card{border:1px solid var(--line);border-radius:18px;padding:16px;background:#fff}.progress-row{margin-top:12px}.progress-head,.lineitem{display:flex;justify-content:space-between;gap:10px;margin-bottom:6px}.lineitem{font-size:13px}
     .toast-wrap{position:fixed;top:16px;right:16px;z-index:9999;display:grid;gap:10px;max-width:320px}.toast{padding:12px 14px;border-radius:14px;border:1px solid var(--line);background:#fff;box-shadow:var(--shadow);font-size:13px}.toast.success{border-color:#bbf7d0;background:#f0fdf4;color:#166534}.toast.error{border-color:#fecaca;background:#fef2f2;color:#991b1b}
-    @media (max-width:1100px){.topbar,.hero,.toolbar,.kpis,.tabs,.grid.two,.stats,.progress-cards,.form-grid{grid-template-columns:1fr}.span-2,.span-3,.span-4,.span-6,.span-12{grid-column:span 1}}
+    @media (max-width:1100px){.topbar,.hero,.toolbar,.kpis,.tabs,.grid.two,.stats,.progress-cards,.form-grid,.finance-grid{grid-template-columns:1fr}.span-2,.span-3,.span-4,.span-6,.span-12{grid-column:span 1}}
   </style>
 </head>
 <body>
@@ -47,7 +47,8 @@
       </div>
       <div class="toolbar">
         <select id="periodFilter"></select>
-        <select id="monthFilter"></select>
+        <input id="periodFromFilter" type="date">
+        <input id="periodToFilter" type="date">
         <select id="costCenterFilter"></select>
         <select id="managerFilter"></select>
       </div>
@@ -78,13 +79,19 @@
           <div id="billingStats" class="stats"></div>
         </div>
       </div>
+
+      <div class="card" style="margin-top:16px">
+        <h3 style="margin-top:0">Financial summary</h3>
+        <div id="financialSummaryGrid" class="finance-grid"></div>
+      </div>
+
       <div class="grid two" style="margin-top:16px">
         <div class="card">
-          <h3 style="margin-top:0">Actual vs Projected vs Straight-line</h3>
+          <h3 style="margin-top:0">Actual vs MTD vs Straight-line</h3>
           <div class="chart-box"><canvas id="varianceChart"></canvas></div>
         </div>
         <div class="card">
-          <h3 style="margin-top:0">Manager comparison performance</h3>
+          <h3 style="margin-top:0">Manager performance</h3>
           <div class="chart-box"><canvas id="managerChart"></canvas></div>
         </div>
       </div>
@@ -162,7 +169,9 @@
   </div>
 
   <script>
-    const DEFAULT_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx936C-mcFnWWkUvd3eFTQWT6fBNztji5NWMXSriJe0FbD2tIe4RERXniEU1ySTrIb_/exec';
+    const DEFAULT_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyChbVPQuhfCKP-ZjpDosCuKnzbGuxJ1HELj55TrYG_ASHDysbjFkOdBthiZ6De_M21/exec';
+    const STATIC_COST_CENTERS = ['All','Onpoint Ontime','Aqua Telcoms','Nkanyezi','Distinct'];
+    const STATIC_MANAGERS = ['All','Moses','Johan','Siyanda','Dave','James','Rayman','Timothy','Roads Site Agent COT','Stanley','Civil Site Agent','Roads Site Agent CPT','Brian','EL CM','Tony','Govern','Graham','Ronald','Petros','Elroy','Mesh','Vusi','Tinotenda','Sydney','Andrew','Phillip','Moeti'];
     const SCRIPT_URL = resolveScriptUrl_();
     const state = { data: null, charts: {} };
     const $ = id => document.getElementById(id);
@@ -192,8 +201,20 @@
       setTimeout(() => el.remove(), 2800);
     }
 
-    function badgeClass(value) { return value >= 100 ? 'ok' : value >= 80 ? 'warn' : 'bad'; }
-    function badge(v) { return `<span class="badge ${badgeClass(v)}">${v}%</span>`; }
+    function perfClass(value) {
+      if (value >= 91) return 'blue';
+      if (value >= 75) return 'ok';
+      if (value >= 50) return 'warn';
+      return 'bad';
+    }
+    function badge(v) { return `<span class="badge ${perfClass(Number(v)||0)}">${Number(v)||0}%</span>`; }
+
+    function setDefaultDates() {
+      const now = new Date();
+      const from = new Date(now.getFullYear(), now.getMonth(), 1);
+      $('periodFromFilter').value = from.toISOString().slice(0,10);
+      $('periodToFilter').value = now.toISOString().slice(0,10);
+    }
 
     async function loadDashboard() {
       if (!validateScriptUrl_(SCRIPT_URL)) {
@@ -204,8 +225,9 @@
       }
       const params = new URLSearchParams({
         action:'bootstrap',
-        period:$('periodFilter').value || 'Daily',
-        month:$('monthFilter').value || new Date().toISOString().slice(0,7),
+        period:$('periodFilter').value || 'Monthly',
+        periodFrom:$('periodFromFilter').value || '',
+        periodTo:$('periodToFilter').value || '',
         costCenter:$('costCenterFilter').value || 'All',
         manager:$('managerFilter').value || 'All'
       });
@@ -231,14 +253,12 @@
 
     function bindOptions(options) {
       const periods = Array.isArray(options.periods) && options.periods.length ? options.periods : ['Daily','Weekly','Monthly','Quarterly','Yearly'];
-      const months = Array.isArray(options.months) && options.months.length ? options.months : [new Date().toISOString().slice(0,7)];
-      const costCenters = Array.isArray(options.costCenters) && options.costCenters.length ? options.costCenters.filter(v => v === 'All' || !/^\d{4}-\d{2}-\d{2}$/.test(String(v||''))) : ['All'];
-      const managers = Array.isArray(options.managers) && options.managers.length ? options.managers.filter(v => v === 'All' || !/^\d{4}-\d{2}-\d{2}$/.test(String(v||''))) : ['All'];
       const projects = Array.isArray(options.projects) ? options.projects : [];
-      bindSelect($('periodFilter'), periods, $('periodFilter').value || 'Daily');
-      bindSelect($('monthFilter'), months, $('monthFilter').value || new Date().toISOString().slice(0,7));
-      bindSelect($('costCenterFilter'), costCenters, $('costCenterFilter').value || 'All');
-      bindSelect($('managerFilter'), managers, $('managerFilter').value || 'All');
+      bindSelect($('periodFilter'), periods, $('periodFilter').value || 'Monthly');
+      bindSelect($('costCenterFilter'), STATIC_COST_CENTERS, $('costCenterFilter').value || 'All');
+      bindSelect($('managerFilter'), STATIC_MANAGERS, $('managerFilter').value || 'All');
+      if (!$('periodFromFilter').value) $('periodFromFilter').value = options.periodFrom || '';
+      if (!$('periodToFilter').value) $('periodToFilter').value = options.periodTo || '';
       $('projectList').innerHTML = projects.map(p => `<option value="${esc(p)}"></option>`).join('');
     }
 
@@ -247,17 +267,18 @@
       el.innerHTML = list.map(x => `<option value="${esc(x)}" ${x === current ? 'selected' : ''}>${esc(x)}</option>`).join('');
     }
 
-    function renderAll() { renderKpis(); renderExecutive(); renderBilling(); renderProgress(); renderTables(); renderCharts(); }
+    function renderAll() { renderKpis(); renderExecutive(); renderBilling(); renderFinancialSummary(); renderProgress(); renderTables(); renderCharts(); }
 
     function renderKpis() {
       const h = state.data.headline;
       $('headlineKpis').innerHTML = [
-        ['Daily Revenue', h.dailyRevenue, `${h.actualVsProjectedPct}% vs projected`],
-        ['Projected Budget', h.projectedBudget, `${h.actualVsStraightlinePct}% vs straight-line`],
+        ['Daily Revenue', h.dailyRevenue, `${h.actualVsProjectedPct}% vs MTD`],
+        ['MTD', h.mtd, 'Monthly daily revenue total'],
         ['Straightline Budget', h.straightlineBudget, 'From Manager Dashboard'],
         ['Total Confirmed', h.confirmed, 'From totals sheet'],
-        ['Total Forecast', h.forecast, 'From same totals sheet as Confirmed'],
-        ['Total Orders', (Number(h.confirmed || 0) + Number(h.forecast || 0)), 'Confirmed + Forecast']
+        ['Total Forecast', h.forecast, 'From totals sheet'],
+        ['Group YTD', h.ytd, 'Year to date revenue'],
+        ['Group BTYED', h.groupBtyed, 'Total confirmed - YTD']
       ].map(x => `<div class="kpi"><div class="label">${esc(x[0])}</div><div class="value">${money(x[1])}</div><div class="sub">${esc(String(x[2]))}</div></div>`).join('');
     }
 
@@ -265,9 +286,9 @@
       const h = state.data.headline;
       const cards = [
         ['Actual', money(h.dailyRevenue)],
-        ['Projected', money(h.projectedBudget)],
+        ['MTD', money(h.mtd)],
         ['Straight-line', money(h.straightlineBudget)],
-        ['Actual vs Projected', badge(h.actualVsProjectedPct)],
+        ['Actual vs MTD', badge(h.actualVsProjectedPct)],
         ['Actual vs Straight-line', badge(h.actualVsStraightlinePct)]
       ];
       $('execStats').innerHTML = cards.map(c => `<div class="kpi"><div class="label">${esc(c[0])}</div><div class="value">${c[1]}</div></div>`).join('');
@@ -284,17 +305,32 @@
       $('billingStats').innerHTML = cards.map(c => `<div class="kpi"><div class="label">${esc(c[0])}</div><div class="value">${money(c[1])}</div></div>`).join('');
     }
 
+    function renderFinancialSummary() {
+      const fs = state.data.tables.financialSummary || {};
+      const order = [['Today','today'],['Week','week'],['Month','month'],['Quarter','quarter'],['Year','year']];
+      $('financialSummaryGrid').innerHTML = order.map(([label,key]) => {
+        const item = fs[key] || { invoices:0, payments:0 };
+        return `<div class="finance-card"><h4 style="margin:0 0 10px">${esc(label)}</h4>
+          <div class="lineitem"><span>Invoices</span><strong>${money(item.invoices)}</strong></div>
+          <div class="lineitem"><span>Payments</span><strong>${money(item.payments)}</strong></div>
+        </div>`;
+      }).join('');
+    }
+
     function renderProgress() {
       const rows = state.data.tables.costCenterPerformance || [];
       $('progressCards').innerHTML = rows.map(r => {
         const proj = Math.max(0, Math.min(100, r.actualVsProjectedPct || 0));
         const straight = Math.max(0, Math.min(100, r.actualVsStraightlinePct || 0));
-        return `<div class="progress-card"><h4 style="margin:0 0 10px">${esc(r.costCenter)}</h4><div class="progress-row"><div class="progress-head"><span>Actual vs Projected</span><strong>${proj}%</strong></div><div class="progress good"><div style="width:${proj}%"></div></div></div><div class="progress-row"><div class="progress-head"><span>Actual vs Straight-line</span><strong>${straight}%</strong></div><div class="progress alt"><div style="width:${straight}%"></div></div></div><div style="margin-top:10px;color:var(--muted);font-size:12px">Actual ${money(r.actual)} · Projected ${money(r.projected)} · Straight-line ${money(r.straightline)}</div></div>`;
+        return `<div class="progress-card"><h4 style="margin:0 0 10px">${esc(r.costCenter)}</h4>
+          <div class="progress-row"><div class="progress-head"><span>Actual vs Projected</span><strong>${proj}%</strong></div><div class="progress good"><div style="width:${proj}%"></div></div></div>
+          <div class="progress-row"><div class="progress-head"><span>Actual vs Straight-line</span><strong>${straight}%</strong></div><div class="progress alt"><div style="width:${straight}%"></div></div></div>
+          <div style="margin-top:10px;color:var(--muted);font-size:12px">Actual ${money(r.actual)} · Projected ${money(r.projected)} · Straight-line ${money(r.straightline)}</div></div>`;
       }).join('');
     }
 
     function renderTables() {
-      renderTable($('managerTable'), ['Manager','Actual','Projected','Straight-line','Actual vs Projected %','Actual vs Straight-line %'], (state.data.tables.managerPerformance || []).map(r => [r.manager, money(r.actual), money(r.projected), money(r.straightline), badge(r.actualVsProjectedPct), badge(r.actualVsStraightlinePct)]));
+      renderTable($('managerTable'), ['Manager','Actual','Projected','Straight-line','Actual vs Projected %','Actual vs Straight-line %','Variance Score'], (state.data.tables.managerPerformance || []).map(r => [r.manager, money(r.actual), money(r.projected), money(r.straightline), badge(r.actualVsProjectedPct), badge(r.actualVsStraightlinePct), badge(r.varianceScore)]));
       renderTable($('costCenterTable'), ['Cost Center','Actual','Projected','Straight-line','Actual vs Projected %','Actual vs Straight-line %'], (state.data.tables.costCenterPerformance || []).map(r => [r.costCenter, money(r.actual), money(r.projected), money(r.straightline), badge(r.actualVsProjectedPct), badge(r.actualVsStraightlinePct)]));
       renderTable($('projectVarianceTable'), ['Project','Manager','Cost Center','Actual','Projected','Straight-line','Bal. to Invoice'], (state.data.tables.projectVariance || []).map(r => [r.projectName, r.projectManager, r.costCenter, money(r.actual), money(r.projected), money(r.straightline), money(r.balanceToInvoice)]));
       renderTable($('entriesTable'), ['Date','Cost Center','Category','Project Manager','Project Name','Monthly Projected Budget','Monthly Straightline Budget','Daily Projected Budget','Daily Straightline Budget','Daily Revenue','Invoices Issued','Payments Received','Confirmed','Forecast'], (state.data.tables.revenueEntries || []).map(r => [r.date, r.costCenter, r.category, r.projectManager, r.projectName, money(r.monthlyProjectedBudget), money(r.monthlyStraightlineBudget), money(r.dailyProjectedBudget), money(r.dailyStraightlineBudget), money(r.dailyRevenue), money(r.invoicesIssued), money(r.paymentsReceived), money(r.confirmed), money(r.forecast)]));
@@ -304,15 +340,39 @@
       el.innerHTML = `<thead><tr>${headers.map(h => `<th>${esc(h)}</th>`).join('')}</tr></thead><tbody>${rows.length ? rows.map(r => `<tr>${r.map(c => `<td>${c}</td>`).join('')}</tr>`).join('') : `<tr><td colspan="${headers.length}" style="color:var(--muted)">No data</td></tr>`}</tbody>`;
     }
 
-    function renderCharts() {
-      renderChart('varianceChart','bar',{labels:['Actual','Projected','Straight-line'],datasets:[{label:'Totals',data:[state.data.headline.dailyRevenue,state.data.headline.projectedBudget,state.data.headline.straightlineBudget]}]});
-      renderChart('managerChart','bar',{labels:(state.data.charts.managerPerformance || []).map(r => r.manager),datasets:[{label:'Actual vs Projected %',data:(state.data.charts.managerPerformance || []).map(r => r.actualVsProjectedPct)},{label:'Actual vs Straight-line %',data:(state.data.charts.managerPerformance || []).map(r => r.actualVsStraightlinePct)}]});
+    function varianceColor(value) {
+      if (value >= 91) return '#1d4ed8';
+      if (value >= 75) return '#15803d';
+      if (value >= 50) return '#b45309';
+      return '#b91c1c';
     }
 
-    function renderChart(id, type, data) {
+    function renderCharts() {
+      renderChart('varianceChart','bar',{
+        labels:['Actual','MTD','Straight-line'],
+        datasets:[{label:'Totals',data:[state.data.headline.dailyRevenue,state.data.headline.mtd,state.data.headline.straightlineBudget], backgroundColor:['#0f172a','#b45309','#94a3b8']}]
+      }, false);
+
+      const mgr = (state.data.charts.managerPerformance || []).slice().sort((a,b)=> (a.varianceScore||0) - (b.varianceScore||0));
+      renderChart('managerChart','bar',{
+        labels:mgr.map(r => r.manager),
+        datasets:[{label:'Variance Score %',data:mgr.map(r => r.varianceScore || 0), backgroundColor:mgr.map(r => varianceColor(r.varianceScore || 0))}]
+      }, true);
+    }
+
+    function renderChart(id, type, data, horizontal=false) {
       if (state.charts[id]) state.charts[id].destroy();
       const ctx = $(id).getContext('2d');
-      state.charts[id] = new Chart(ctx, { type, data, options:{ responsive:true, maintainAspectRatio:false } });
+      state.charts[id] = new Chart(ctx, {
+        type, data,
+        options:{
+          responsive:true,
+          maintainAspectRatio:false,
+          indexAxis: horizontal ? 'y' : 'x',
+          scales:{ x:{ beginAtZero:true }, y:{ beginAtZero:true } },
+          plugins:{ legend:{ display:true } }
+        }
+      });
     }
 
     async function saveEntry() {
@@ -376,13 +436,14 @@
       $(tab.dataset.panel).classList.add('active');
     }));
 
-    ['periodFilter','monthFilter','costCenterFilter','managerFilter'].forEach(id => $(id).addEventListener('change', loadDashboard));
+    ['periodFilter','periodFromFilter','periodToFilter','costCenterFilter','managerFilter'].forEach(id => $(id).addEventListener('change', loadDashboard));
     $('refreshBtn').addEventListener('click', loadDashboard);
     $('saveEntryBtn').addEventListener('click', async () => { try { await saveEntry(); } catch (e) { showToast(e.message, 'error'); } });
     $('saveProjectBtn').addEventListener('click', async () => { try { await saveProject(); } catch (e) { showToast(e.message, 'error'); } });
 
     $('entryDate').value = todayISO();
     $('projectDate').value = todayISO();
+    setDefaultDates();
     loadDashboard();
   </script>
 </body>
