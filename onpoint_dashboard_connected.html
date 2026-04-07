@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>Revenue & Performance Dashboard | Google Sheets Integration</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    * { transition: all 0.1s ease; }
+    body { background: #f1f5f9; font-family: system-ui, -apple-system, 'Inter', sans-serif; }
+    .rounded-3xl { border-radius: 1.5rem; }
+    .loading-spinner { border: 3px solid #f3f3f3; border-top: 3px solid #0f172a; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 20px auto; }
+    .hidden { display: none !important; }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+  </style>
+</head>
+<body class="antialiased">
+<div id="app-root" class="min-h-screen bg-slate-100 text-slate-900">
+  <div class="flex items-center justify-center min-h-screen">
+    <div class="text-center">
+      <div class="loading-spinner"></div>
+      <p class="mt-4 text-slate-600">Loading data from Google Sheets...</p>
+    </div>
+  </div>
+</div>
+
+<script>
+  const CATEGORY_MARGINS = {
+    'Electrical': 45,
+    'Telecoms': 45,
+    'Civil': 20,
+    'General Buildings': 30,
+    'Roads': 20,
+    'Mechanical': 30
+  };
+
+  const APP_CONFIG = {
+    budgetsSheetId: '1X8JvZqdGOPAFhL-H-PemqWHVs5Gk3P3tmrrdeP0SMEA',
+    budgetsSheetName: 'Budgets',
+    revenueSheetId: '1wl599p4871pR2tOZmIuq44pdDy6N2PggKrmMrfD8wv0',
+    revenueSheetName: 'Revenue',
+    projectsSheetName: 'Projects',
+    storageKey: 'onpoint_dashboard_script_url',
+    defaultScriptUrl: ''
+  };
+
+  let state = {
+    scriptUrl: localStorage.getItem(APP_CONFIG.storageKey) || APP_CONFIG.defaultScriptUrl,
+    period: 'Daily',
+    referenceDate: new Date().toISOString().split('T')[0],
+    costCenter: 'All',
+    manager: 'All',
+    query: '',
+    viewTab: 'executive',
+    isLoading: true,
+    isSavingProject: false,
+    isSavingRevenue: false,
+    dashboard: null,
+    reference: { managers: [], costCenters: [], projects: [] },
+    message: '',
+    messageTone: 'slate'
+  };
+
+  function money(val) {
+    return new Intl.NumberFormat('en-ZA', {
+      style: 'currency',
+      currency: 'ZAR',
+      maximumFractionDigits: 0
+    }).format(Number(val || 0));
+  }
+
+  function numberValue(value) {
+    if (value === null || value === undefined || value === '') return 0;
+    const cleaned = String(value).replace(/[^0-9.-]/g, '');
+    const parsed = parseFloat(cleaned);
+    return Number.isFinite(parsed) ? parsed : 0;
+  }
+
+  function pct(actual, target) {
+    const a = numberValue(actual);
+    const t = numberValue(target);
+    if (!t) return 0;
+    return Math.round((a / t) * 100);
+  }
+
+  function toneClass(tone) {
+    return {
+      green: 'bg-green-100 text-green-700 border-green-200',
+      amber: 'bg-amber-100 text-amber-700 border-amber-200',
+      red: 'bg-red-100 text-red-700 border-red-200',
+      slate: 'bg-slate-100 text-slate-700 border-slate-200',
+      blue: 'bg-blue-100 text-blue-700 border-blue-200'
+    }[tone] || 'bg-slate-100 text-slate-700 border-slate-200';
+  }
+
+  function statusTone(value) {
+    if (value >= 80) return 'green';
+    if (value >= 50) return 'amber';
+    return 'red';
+  }
+
+  function setMessage(message, tone = 'slate') {
+    state.message = message;
+    state.messageTone = tone;
+    render();
+  }
+
+  function getScriptUrl() {
+    return state.scriptUrl?.trim() || '';
+  }
+
+  async function apiGet(action, params = {}) {
+    const scriptUrl = getScriptUrl();
+    if (!scriptUrl) throw new Error('Add your Apps Script Web App URL first.');
+    const url = new URL(scriptUrl);
+    url.searchParams.set('action', action);
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && value !== '') {
+        url.searchParams.set(key, value);
+      }
+    });
+    const response = await fetch(url.toString(), { method: 'GET' });
+    const data = await response.json();
+    if (!data.success) throw new Error(data.error || 'Request failed');
+    return data;
+  }
+
+  async function apiPost(action, payload = {}) {
+    const scriptUrl = getScriptUrl();
+    if (!scriptUrl) throw new Error('Add your Apps Script Web App URL first.');
+    const url = new URL(scriptUrl);
+    url.searchParams.set('action', action);
+    const response = await fetch(url.toString(), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const data = await response.json();
+    if (!data.success) throw new Error(data.error || 'Request failed');
+    return data;
+  }
+
+  function filteredProjects() {
+    const items = state.dashboard?.projectSummaries || [];
+    const query = state.query.trim().toLowerCase();
+    return items.filter(item => {
+      if (state.costCenter !== 'All' && item.costCenter !== state.costCenter) return false;
+      if (state.manager !== 'All' && item.manager !== state.manager) return false;
+      if (!query) return true;
+      return `${item.projectName} ${item.manager} ${item.costCenter} ${item.category}`.toLowerCase().includes(query);
+    });
+  }
+
+  async function loadDashboard() {
+    state.isLoading = true;
+    render();
+    try {
+      const [dashboardRes, referenceRes] = await Promise.all([
+        apiGet('getDashboardData', {
+          period: state.period,
+          referenceDate: state.referenceDate,
+          costCenter: state.costCenter === 'All' ? '' : state.costCenter,
+          manager: state.manager === 'All' ? '' : state.manager
+        }),
+        apiGet('getReferenceData')
+      ]);
+      state.dashboard = dashboardRes.data;
+      state.reference = referenceRes.data;
+      state.isLoading = false;
+      if (!state.message) setMessage('Dashboard refreshed successfully.', 'green');
+      render();
+    } catch (error) {
+      state.isLoading = false;
+      setMessage(error.message, 'red');
+    }
+  }
+
+  function currentDateLabel() {
+    const date = new Date(state.referenceDate + 'T00:00:00');
+    return date.toLocaleDateString('en-ZA', { year: 'numeric', month: 'long', day: 'numeric' });
+  }
+
+  function periodLabel() {
+    return `${state.period} view as at ${currentDateLabel()}`;
+  }
+
+  function renderKpiCard(title, value, sub, tone) {
+    return `
+      <div class="rounded-3xl border bg-white p-5 shadow-sm">
+        <div class="text-sm text-slate-500">${title}</div>
+        <div class="text-2xl font-semibold mt-2">${value}</div>
+        <div class="text-xs mt-1 ${toneClass(tone)} inline-flex px-2 py-1 rounded-full border">${sub}</div>
+      </div>
+    `;
+  }
+
+  function renderProgressBar(actual, target) {
+    const percent = Math.min(100, pct(actual, target));
+    const tone = statusTone(percent);
+    const barColor = tone === 'green' ? 'bg-green-500' : tone === 'amber' ? 'bg-amber-500' : 'bg-red-500';
+    return `
+      <div>
+        <div class="flex justify-between text-xs text-slate-500 mb-1">
+          <span>${money(actual)}</span>
+          <span>${money(target)}</span>
+        </div>
+        <div class="h-3 rounded-full bg-slate-200 overflow-hidden">
+          <div class="h-full ${barColor}" style="width:${percent}%"></div>
+        </div>
+        <div class="text-xs mt-1 text-slate-500">${percent}% of target</div>
+      </div>
+    `;
+  }
+
+  function renderExecutiveView() {
+    const dashboard = state.dashboard || {};
+    const projects = filteredProjects();
+    const totals = dashboard.filteredTotals || {};
+
+    return `
+      <div class="space-y-6">
+        <div class="grid gap-4 lg:grid-cols-2">
+          <div class="rounded-3xl border bg-white p-6 shadow-sm">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="font-semibold text-lg">Executive summary</h3>
+              <span class="text-xs text-slate-500">${periodLabel()}</span>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+              <div class="p-4 bg-slate-50 rounded-2xl">
+                <div class="text-sm text-slate-500">Revenue for period</div>
+                <div class="text-2xl font-bold mt-1">${money(totals.periodRevenue)}</div>
+              </div>
+              <div class="p-4 bg-slate-50 rounded-2xl">
+                <div class="text-sm text-slate-500">Budget for period</div>
+                <div class="text-2xl font-bold mt-1">${money(totals.periodBudget)}</div>
+              </div>
+              <div class="p-4 bg-slate-50 rounded-2xl">
+                <div class="text-sm text-slate-500">Today's revenue</div>
+                <div class="text-2xl font-bold mt-1">${money(dashboard.revenueDaily)}</div>
+              </div>
+              <div class="p-4 bg-slate-50 rounded-2xl">
+                <div class="text-sm text-slate-500">Profitability</div>
+                <div class="text-2xl font-bold mt-1">${dashboard.profitabilityPct || 0}%</div>
+              </div>
+            </div>
+            <div class="mt-5">
+              ${renderProgressBar(totals.periodRevenue || 0, totals.periodBudget || 0)}
+            </div>
+          </div>
+          <div class="rounded-3xl border bg-white p-6 shadow-sm">
+            <h3 class="font-semibold text-lg mb-4">Top project managers</h3>
+            <div class="space-y-3">
+              ${(dashboard.managerSummaries || []).slice(0, 6).map(item => `
+                <div class="rounded-2xl border p-4 bg-slate-50">
+                  <div class="flex items-center justify-between">
+                    <div>
+                      <div class="font-medium">${item.manager}</div>
+                      <div class="text-xs text-slate-500">${item.projectCount} projects</div>
+                    </div>
+                    <div class="text-right">
+                      <div class="font-semibold">${money(item.periodRevenue)}</div>
+                      <div class="text-xs text-slate-500">${pct(item.periodRevenue, item.periodBudget)}% achievement</div>
+                    </div>
+                  </div>
+                  <div class="mt-3">${renderProgressBar(item.periodRevenue, item.periodBudget)}</div>
+                </div>
+              `).join('') || '<div class="text-sm text-slate-500">No manager data found.</div>'}
+            </div>
+          </div>
+        </div>
+
+        <div class="rounded-3xl border bg-white p-6 shadow-sm overflow-x-auto">
+          <h3 class="font-semibold text-lg mb-4">Performance by cost center</h3>
+          <table class="w-full text-sm">
+            <thead class="bg-slate-100 text-slate-700">
+              <tr>
+                <th class="p-3 text-left">Cost center</th>
+                <th class="p-3 text-right">Revenue</th>
+                <th class="p-3 text-right">Budget</th>
+                <th class="p-3 text-right">Achievement</th>
+                <th class="p-3 text-right">Profitability</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${(dashboard.costCenterSummaries || []).map(item => `
+                <tr class="border-b">
+                  <td class="p-3 font-medium">${item.costCenter}</td>
+                  <td class="p-3 text-right">${money(item.periodRevenue)}</td>
+                  <td class="p-3 text-right">${money(item.periodBudget)}</td>
+                  <td class="p-3 text-right"><span class="px-2 py-1 rounded-full border ${toneClass(statusTone(pct(item.periodRevenue, item.periodBudget)))}">${pct(item.periodRevenue, item.periodBudget)}%</span></td>
+                  <td class="p-3 text-right">${item.profitabilityPct}%</td>
+                </tr>
+              `).join('') || '<tr><td colspan="5" class="p-4 text-slate-500">No cost center data found.</td></tr>'}
+            </tbody>
+          </table>
+        </div>
+
+        <div class="rounded-3xl border bg-white p-6 shadow-sm overflow-x-auto">
+          <h3 class="font-semibold text-lg mb-4">Project performance</h3>
+          <table class="w-full text-sm">
+            <thead class="bg-slate-100 text-slate-700">
+              <tr>
+                <th class="p-3 text-left">Project</th>
+                <th class="p-3 text-left">Manager</th>
+                <th class="p-3 text-left">Cost center</th>
+                <th class="p-3 text-left">Category</th>
+                <th class="p-3 text-right">Revenue</th>
+                <th class="p-3 text-right">Budget</th>
+                <th class="p-3 text-right">Margin</th>
+                <th class="p-3 text-right">Profit</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${projects.map(item => `
+                <tr class="border-b">
+                  <td class="p-3 font-medium">${item.projectName}</td>
+                  <td class="p-3">${item.manager}</td>
+                  <td class="p-3">${item.costCenter}</td>
+                  <td class="p-3">${item.category || 'Uncategorised'}</td>
+                  <td class="p-3 text-right">${money(item.periodRevenue)}</td>
+                  <td class="p-3 text-right">${money(item.periodBudget)}</td>
+                  <td class="p-3 text-right">${item.margin}%</td>
+                  <td class="p-3 text-right">${money(item.periodProfit)}</td>
+                </tr>
+              `).join('') || '<tr><td colspan="8" class="p-4 text-slate-500">No project data found.</td></tr>'}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    `;
+  }
+
+  function renderPerformanceView() {
+    const dashboard = state.dashboard || {};
+    return `
+      <div class="space-y-6">
+        <div class="rounded-3xl border bg-white p-6 shadow-sm overflow-x-auto">
+          <h3 class="font-semibold text-lg mb-4">Project manager performance</h3>
+          <table class="w-full text-sm">
+            <thead class="bg-slate-100">
+              <tr>
+                <th class="p-3 text-left">Manager</th>
+                <th class="p-3 text-right">Revenue</th>
+                <th class="p-3 text-right">Budget</th>
+                <th class="p-3 text-right">Achievement</th>
+                <th class="p-3 text-right">Profitability</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${(dashboard.managerSummaries || []).map(item => `
+                <tr class="border-b">
+                  <td class="p-3 font-medium">${item.manager}</td>
+                  <td class="p-3 text-right">${money(item.periodRevenue)}</td>
+                  <td class="p-3 text-right">${money(item.periodBudget)}</td>
+                  <td class="p-3 text-right">${pct(item.periodRevenue, item.periodBudget)}%</td>
+                  <td class="p-3 text-right">${item.profitabilityPct}%</td>
+                </tr>
+              `).join('') || '<tr><td colspan="5" class="p-4 text-slate-500">No manager data found.</td></tr>'}
+            </tbody>
+          </table>
+        </div>
+
+        <div class="rounded-3xl border bg-white p-6 shadow-sm">
+          <h3 class="font-semibold text-lg mb-4">Margin table used by new project form</h3>
+          <div class="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+            ${Object.entries(CATEGORY_MARGINS).map(([category, margin]) => `
+              <div class="rounded-2xl border bg-slate-50 p-4 flex items-center justify-between">
+                <span class="font-medium">${category}</span>
+                <span class="px-2 py-1 rounded-full border bg-white">${margin}%</span>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  function renderEntryView() {
+    const projects = state.reference.projects || [];
+    const managerOptions = state.reference.managers || [];
+    const costCenterOptions = state.reference.costCenters || [];
+    return `
+      <div class="space-y-6">
+        <div class="grid gap-6 xl:grid-cols-2">
+          <div class="rounded-3xl border bg-white p-6 shadow-sm">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="font-semibold text-lg">New Project Entry</h3>
+              <span class="text-xs text-slate-500">Creates/updates the Projects sheet</span>
+            </div>
+            <form id="projectForm" class="grid gap-4 md:grid-cols-2">
+              <div>
+                <label class="text-sm text-slate-500">Date</label>
+                <input name="date" type="date" value="${state.referenceDate}" class="mt-1 w-full rounded-2xl border bg-slate-50 p-3" required>
+              </div>
+              <div>
+                <label class="text-sm text-slate-500">Manager</label>
+                <input name="manager" list="managerList" class="mt-1 w-full rounded-2xl border bg-slate-50 p-3" required>
+              </div>
+              <div>
+                <label class="text-sm text-slate-500">Cost Center</label>
+                <input name="costCenter" list="costCenterList" class="mt-1 w-full rounded-2xl border bg-slate-50 p-3" required>
+              </div>
+              <div>
+                <label class="text-sm text-slate-500">Project Name</label>
+                <input name="projectName" class="mt-1 w-full rounded-2xl border bg-slate-50 p-3" required>
+              </div>
+              <div>
+                <label class="text-sm text-slate-500">Category</label>
+                <select name="category" id="projectCategory" class="mt-1 w-full rounded-2xl border bg-slate-50 p-3" required>
+                  <option value="">Select category</option>
+                  ${Object.keys(CATEGORY_MARGINS).map(category => `<option value="${category}">${category}</option>`).join('')}
+                </select>
+              </div>
+              <div>
+                <label class="text-sm text-slate-500">Profit Margin</label>
+                <input name="margin" id="projectMargin" class="mt-1 w-full rounded-2xl border bg-slate-50 p-3" readonly>
+              </div>
+              <div class="md:col-span-2">
+                <button type="submit" class="rounded-2xl bg-slate-900 text-white px-5 py-3 font-medium w-full ${state.isSavingProject ? 'opacity-60 pointer-events-none' : ''}">
+                  ${state.isSavingProject ? 'Saving project...' : 'Save Project'}
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <div class="rounded-3xl border bg-white p-6 shadow-sm">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="font-semibold text-lg">Daily Revenue Entry</h3>
+              <span class="text-xs text-slate-500">Writes to Revenue sheet</span>
+            </div>
+            <form id="revenueForm" class="grid gap-4 md:grid-cols-2">
+              <div>
+                <label class="text-sm text-slate-500">Date</label>
+                <input name="date" type="date" value="${state.referenceDate}" class="mt-1 w-full rounded-2xl border bg-slate-50 p-3" required>
+              </div>
+              <div>
+                <label class="text-sm text-slate-500">Manager</label>
+                <input name="manager" list="managerList" class="mt-1 w-full rounded-2xl border bg-slate-50 p-3" required>
+              </div>
+              <div>
+                <label class="text-sm text-slate-500">CostCenter</label>
+                <input name="costCenter" list="costCenterList" class="mt-1 w-full rounded-2xl border bg-slate-50 p-3" required>
+              </div>
+              <div>
+                <label class="text-sm text-slate-500">ProjectName</label>
+                <input name="projectName" id="revenueProjectName" list="projectList" class="mt-1 w-full rounded-2xl border bg-slate-50 p-3" required>
+              </div>
+              <div>
+                <label class="text-sm text-slate-500">Actuals</label>
+                <input name="actuals" type="number" step="0.01" class="mt-1 w-full rounded-2xl border bg-slate-50 p-3" required>
+              </div>
+              <div>
+                <label class="text-sm text-slate-500">Projected Budget</label>
+                <input name="projectedBudget" type="number" step="0.01" class="mt-1 w-full rounded-2xl border bg-slate-50 p-3" required>
+              </div>
+              <div>
+                <label class="text-sm text-slate-500">Safety</label>
+                <input name="safety" type="number" step="0.01" min="0" max="100" value="100" class="mt-1 w-full rounded-2xl border bg-slate-50 p-3" required>
+              </div>
+              <div>
+                <label class="text-sm text-slate-500">Margin</label>
+                <input name="margin" id="revenueMargin" type="number" step="0.01" class="mt-1 w-full rounded-2xl border bg-slate-50 p-3" readonly>
+              </div>
+              <div class="md:col-span-2">
+                <label class="text-sm text-slate-500">Budget</label>
+                <input name="budget" type="number" step="0.01" class="mt-1 w-full rounded-2xl border bg-slate-50 p-3" required>
+              </div>
+              <div class="md:col-span-2">
+                <button type="submit" class="rounded-2xl bg-slate-900 text-white px-5 py-3 font-medium w-full ${state.isSavingRevenue ? 'opacity-60 pointer-events-none' : ''}">
+                  ${state.isSavingRevenue ? 'Saving revenue entry...' : 'Save Revenue Entry'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <datalist id="projectList">
+          ${projects.map(project => `<option value="${project.projectName}"></option>`).join('')}
+        </datalist>
+        <datalist id="managerList">
+          ${managerOptions.map(manager => `<option value="${manager}"></option>`).join('')}
+        </datalist>
+        <datalist id="costCenterList">
+          ${costCenterOptions.map(costCenter => `<option value="${costCenter}"></option>`).join('')}
+        </datalist>
+      </div>
+    `;
+  }
+
+  function renderSetupBanner() {
+    const isSet = !!getScriptUrl();
+    return `
+      <div class="rounded-3xl border ${isSet ? 'bg-emerald-50 border-emerald-200' : 'bg-amber-50 border-amber-200'} p-5 mb-6 shadow-sm">
+        <div class="flex flex-col xl:flex-row xl:items-end gap-4">
+          <div class="flex-1">
+            <div class="text-sm font-semibold ${isSet ? 'text-emerald-700' : 'text-amber-700'}">Apps Script Web App URL</div>
+            <div class="text-sm text-slate-600 mt-1">Paste your deployed Apps Script web app URL once. It is saved in this browser for future loads.</div>
+          </div>
+          <div class="flex-[2] grid gap-3 md:grid-cols-[1fr_auto_auto]">
+            <input id="scriptUrlInput" value="${(getScriptUrl() || '').replace(/"/g, '&quot;')}" placeholder="https://script.google.com/macros/s/.../exec" class="rounded-2xl border bg-white p-3">
+            <button id="saveScriptUrlBtn" class="rounded-2xl bg-slate-900 text-white px-5 py-3">Save URL</button>
+            <button id="testConnectionBtn" class="rounded-2xl border bg-white px-5 py-3">Test Connection</button>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  function render() {
+    if (state.isLoading && !state.dashboard) {
+      document.getElementById('app-root').innerHTML = `
+        <div class="flex items-center justify-center min-h-screen">
+          <div class="text-center">
+            <div class="loading-spinner"></div>
+            <p class="mt-4 text-slate-600">Loading data from Google Sheets...</p>
+          </div>
+        </div>
+      `;
+      lucide.createIcons();
+      return;
+    }
+
+    const dashboard = state.dashboard || {
+      totalConfirmed: 0,
+      totalForecast: 0,
+      mtd: 0,
+      groupBytd: 0,
+      revenueDaily: 0,
+      profitabilityPct: 0,
+      filteredTotals: { periodRevenue: 0, periodBudget: 0 },
+      managerSummaries: [],
+      costCenterSummaries: [],
+      projectSummaries: []
+    };
+
+    const rootEl = document.getElementById('app-root');
+    rootEl.innerHTML = `
+      <div class="max-w-7xl mx-auto p-4 md:p-8">
+        <div class="mb-4 flex items-center justify-between rounded-full border bg-white/80 px-4 py-2 shadow-sm backdrop-blur-sm">
+          <div class="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
+            <i data-lucide="layers3" class="w-4 h-4"></i>
+            Revenue Reporting Tool | Live Google Sheets Integration
+          </div>
+          <button id="refreshBtn" class="rounded-full bg-slate-900 text-white px-4 py-1 text-sm flex items-center gap-1 hover:bg-slate-700 ${state.isLoading ? 'opacity-60 pointer-events-none' : ''}">
+            <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+            ${state.isLoading ? 'Refreshing...' : 'Refresh Data'}
+          </button>
+        </div>
+
+        ${renderSetupBanner()}
+
+        ${state.message ? `<div class="mb-6 rounded-2xl border p-4 ${toneClass(state.messageTone)}">${state.message}</div>` : ''}
+
+        <div class="grid gap-4 md:grid-cols-4 mb-6">
+          ${renderKpiCard('Total Confirmed', money(dashboard.totalConfirmed), 'Total of Amount where Status = Confirmed', 'green')}
+          ${renderKpiCard('Total Forecast', money(dashboard.totalForecast), 'Total of Amount where Status = Forecast', 'amber')}
+          ${renderKpiCard('MTD', money(dashboard.mtd), 'Month-to-date revenue from Revenue sheet', 'blue')}
+          ${renderKpiCard('Group BYTD', money(dashboard.groupBytd), 'Total Confirmed less year-to-date revenue', statusTone(pct(dashboard.groupBytd, dashboard.totalConfirmed || 1)))}
+        </div>
+
+        <div class="rounded-[32px] border bg-white/90 p-6 shadow-sm mb-6">
+          <div class="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-5">
+            <div>
+              <h1 class="text-2xl font-semibold">Revenue, Performance & Action Reporting</h1>
+              <p class="text-sm text-slate-500 mt-1">Filter by cost center, project manager and period. Revenue Daily comes from Revenue!Actuals. Profitability comes from project category margin.</p>
+            </div>
+            <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+              <select id="periodSelect" class="rounded-2xl bg-slate-50 border p-3 text-sm">
+                ${['Daily', 'Weekly', 'Monthly', 'Quarterly', 'Yearly'].map(period => `<option value="${period}" ${state.period === period ? 'selected' : ''}>${period}</option>`).join('')}
+              </select>
+              <input id="referenceDateInput" type="date" value="${state.referenceDate}" class="rounded-2xl bg-slate-50 border p-3 text-sm">
+              <select id="costCenterSelect" class="rounded-2xl bg-slate-50 border p-3 text-sm">
+                <option value="All">All cost centers</option>
+                ${(state.reference.costCenters || []).map(item => `<option value="${item}" ${state.costCenter === item ? 'selected' : ''}>${item}</option>`).join('')}
+              </select>
+              <select id="managerSelect" class="rounded-2xl bg-slate-50 border p-3 text-sm">
+                <option value="All">All managers</option>
+                ${(state.reference.managers || []).map(item => `<option value="${item}" ${state.manager === item ? 'selected' : ''}>${item}</option>`).join('')}
+              </select>
+              <input id="searchInput" type="text" value="${state.query.replace(/"/g, '&quot;')}" placeholder="Search project, PM, cost center" class="rounded-2xl bg-slate-50 border p-3 text-sm">
+            </div>
+          </div>
+        </div>
+
+        <div class="flex rounded-2xl bg-slate-200/70 p-1 gap-1 mb-6">
+          <button class="tab-btn flex-1 py-2 rounded-xl text-sm font-medium ${state.viewTab === 'executive' ? 'bg-white shadow' : 'text-slate-600'}" data-tab="executive">Executive Summary</button>
+          <button class="tab-btn flex-1 py-2 rounded-xl text-sm font-medium ${state.viewTab === 'performance' ? 'bg-white shadow' : 'text-slate-600'}" data-tab="performance">Performance Report</button>
+          <button class="tab-btn flex-1 py-2 rounded-xl text-sm font-medium ${state.viewTab === 'entries' ? 'bg-white shadow' : 'text-slate-600'}" data-tab="entries">Entries</button>
+        </div>
+
+        ${state.viewTab === 'executive' ? renderExecutiveView() : state.viewTab === 'performance' ? renderPerformanceView() : renderEntryView()}
+      </div>
+    `;
+
+    lucide.createIcons();
+    attachEventListeners();
+  }
+
+  function projectMetaByName(name) {
+    return (state.reference.projects || []).find(item => item.projectName === name) || null;
+  }
+
+  function updateMarginsFromInputs() {
+    const projectCategory = document.getElementById('projectCategory');
+    const projectMargin = document.getElementById('projectMargin');
+    if (projectCategory && projectMargin) {
+      const margin = CATEGORY_MARGINS[projectCategory.value] || '';
+      projectMargin.value = margin === '' ? '' : `${margin}%`;
+    }
+
+    const revenueProjectName = document.getElementById('revenueProjectName');
+    const revenueMargin = document.getElementById('revenueMargin');
+    if (revenueProjectName && revenueMargin) {
+      const match = projectMetaByName(revenueProjectName.value);
+      revenueMargin.value = match ? match.margin : '';
+    }
+  }
+
+  function attachEventListeners() {
+    document.getElementById('saveScriptUrlBtn')?.addEventListener('click', () => {
+      const value = document.getElementById('scriptUrlInput').value.trim();
+      localStorage.setItem(APP_CONFIG.storageKey, value);
+      state.scriptUrl = value;
+      setMessage('Apps Script URL saved in this browser.', 'green');
+    });
+
+    document.getElementById('testConnectionBtn')?.addEventListener('click', async () => {
+      try {
+        setMessage('Testing connection...', 'blue');
+        const result = await apiGet('getReferenceData');
+        state.reference = result.data;
+        setMessage('Connection successful.', 'green');
+      } catch (error) {
+        setMessage(error.message, 'red');
+      }
+    });
+
+    document.getElementById('refreshBtn')?.addEventListener('click', async () => {
+      await loadDashboard();
+    });
+
+    document.getElementById('periodSelect')?.addEventListener('change', async (e) => {
+      state.period = e.target.value;
+      await loadDashboard();
+    });
+
+    document.getElementById('referenceDateInput')?.addEventListener('change', async (e) => {
+      state.referenceDate = e.target.value;
+      await loadDashboard();
+    });
+
+    document.getElementById('costCenterSelect')?.addEventListener('change', async (e) => {
+      state.costCenter = e.target.value;
+      await loadDashboard();
+    });
+
+    document.getElementById('managerSelect')?.addEventListener('change', async (e) => {
+      state.manager = e.target.value;
+      await loadDashboard();
+    });
+
+    document.getElementById('searchInput')?.addEventListener('input', (e) => {
+      state.query = e.target.value;
+      render();
+    });
+
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        state.viewTab = btn.dataset.tab;
+        render();
+      });
+    });
+
+    document.getElementById('projectCategory')?.addEventListener('change', updateMarginsFromInputs);
+    document.getElementById('revenueProjectName')?.addEventListener('input', updateMarginsFromInputs);
+    updateMarginsFromInputs();
+
+    document.getElementById('projectForm')?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const form = new FormData(e.target);
+      const category = form.get('category');
+      const margin = CATEGORY_MARGINS[category] || 0;
+      state.isSavingProject = true;
+      render();
+      try {
+        await apiPost('addProject', {
+          date: form.get('date'),
+          manager: form.get('manager'),
+          costCenter: form.get('costCenter'),
+          projectName: form.get('projectName'),
+          category,
+          margin
+        });
+        setMessage('Project saved successfully.', 'green');
+        state.isSavingProject = false;
+        await loadDashboard();
+        state.viewTab = 'entries';
+        render();
+        document.getElementById('projectForm')?.reset();
+      } catch (error) {
+        state.isSavingProject = false;
+        setMessage(error.message, 'red');
+      }
+    });
+
+    document.getElementById('revenueForm')?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const form = new FormData(e.target);
+      const meta = projectMetaByName(form.get('projectName'));
+      state.isSavingRevenue = true;
+      render();
+      try {
+        await apiPost('addRevenueEntry', {
+          date: form.get('date'),
+          manager: form.get('manager'),
+          costCenter: form.get('costCenter'),
+          projectName: form.get('projectName'),
+          actuals: numberValue(form.get('actuals')),
+          projectedBudget: numberValue(form.get('projectedBudget')),
+          safety: numberValue(form.get('safety')),
+          margin: meta ? meta.margin : numberValue(form.get('margin')),
+          budget: numberValue(form.get('budget'))
+        });
+        setMessage('Revenue entry saved successfully.', 'green');
+        state.isSavingRevenue = false;
+        await loadDashboard();
+        state.viewTab = 'entries';
+        render();
+        document.getElementById('revenueForm')?.reset();
+      } catch (error) {
+        state.isSavingRevenue = false;
+        setMessage(error.message, 'red');
+      }
+    });
+  }
+
+  async function init() {
+    state.isLoading = false;
+    render();
+    if (getScriptUrl()) {
+      await loadDashboard();
+    } else {
+      setMessage('Add your Apps Script Web App URL to activate live data.', 'amber');
+    }
+  }
+
+  init();
+</script>
+</body>
+</html>
