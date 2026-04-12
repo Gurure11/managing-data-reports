@@ -292,7 +292,7 @@ const ONPOINT_OVERRIDE_MONTHLY_PROJECTED = 34220381;
 const ONPOINT_OVERRIDE_MONTHLY_STRAIGHTLINE = 39556824;
 const GROUP_FIXED_MONTHLY_PROJECTED = 34220381;
 const GROUP_FIXED_MONTHLY_STRAIGHTLINE = 39556824;
-const state = { projects:[], revenue:[], invoices:[], payments:[], managerBudgets:[], orders:[], straightline:[], filters:{ period:'Monthly', asAtDate: todayISO(), division:'All', manager:'All', project:'All', search:'' } }; let charts = {};
+const state = { projects:[], revenue:[], invoices:[], payments:[], managerBudgets:[], orders:[], straightline:[], filters:{ period:'Monthly', asAtDate:'', division:'All', manager:'All', project:'All', search:'' } }; let charts = {};
 const $ = id => document.getElementById(id);
 const log = (...args) => { const msg = args.map(v => typeof v === 'string' ? v : JSON.stringify(v,null,2)).join(' '); $('diagnostics').textContent = `${new Date().toLocaleString()}\n${msg}\n\n` + $('diagnostics').textContent; };
 const num = v => Number(String(v ?? '').replace(/[^0-9.-]/g,'')) || 0;
@@ -993,8 +993,8 @@ function buildCurrentHistorySnapshot(){
     PerformancePct: Math.round(num(r.ActualVsProjectedPct))
   }));
   return {
-    snapshotDate: todayISO(),
-    displayDate: formatDisplayDate(todayISO()),
+    snapshotDate: normaliseDate(state.filters.asAtDate || todayISO()) || todayISO(),
+    displayDate: formatDisplayDate(normaliseDate(state.filters.asAtDate || todayISO()) || todayISO()),
     selectedPeriod: text(state.filters.period || 'Monthly'),
     createdAt: new Date().toISOString(),
     summary,
@@ -1020,9 +1020,10 @@ function renderHistorySnapshots(){
   select.innerHTML = snapshots.length
     ? snapshots.map(s => `<option value="${escapeHtml(s.snapshotDate)}">${escapeHtml(s.displayDate || s.snapshotDate)}</option>`).join('')
     : '<option value="">No saved snapshots</option>';
-  const selectedValue = select.dataset.selectedValue && snapshots.some(s => s.snapshotDate === select.dataset.selectedValue)
+  const preferredDate = normaliseDate(state.filters.asAtDate || todayISO()) || todayISO();
+  const selectedValue = (select.dataset.selectedValue && snapshots.some(s => s.snapshotDate === select.dataset.selectedValue))
     ? select.dataset.selectedValue
-    : (select.value || snapshots[0]?.snapshotDate || '');
+    : (snapshots.some(s => s.snapshotDate === preferredDate) ? preferredDate : (select.value || snapshots[0]?.snapshotDate || ''));
   select.value = selectedValue;
   select.dataset.selectedValue = selectedValue;
   const snapshot = snapshots.find(s => s.snapshotDate === selectedValue);
@@ -1652,7 +1653,7 @@ function renderSummary(){
   renderExecutiveDashboard();
   renderExecutiveGrossProfit();
   const savedSnapshot = saveExecutiveHistorySnapshot(false);
-  if ($('historySnapshotSelect') && !$('historySnapshotSelect').dataset.selectedValue) $('historySnapshotSelect').dataset.selectedValue = savedSnapshot.snapshotDate;
+  if ($('historySnapshotSelect')) $('historySnapshotSelect').dataset.selectedValue = normaliseDate(state.filters.asAtDate || savedSnapshot.snapshotDate || todayISO()) || savedSnapshot.snapshotDate;
   renderHistorySnapshots();
   const ccRows = costCenterPeriodRows(state.filters.period);
   buildTable($('costCenterTable'), [{label:'Cost Center'},{label:'Actual',class:'right'},{label:'Projected',class:'right'},{label:'Straight-line',class:'right'},{label:'Actual vs Projected %',class:'right'}], ccRows.map(item => {
@@ -2285,9 +2286,9 @@ function populateFilters(){
   fillSelect('revProjectName', allProjects); fillSelect('invProjectName', allProjects); fillSelect('payProjectName', allProjects);
   applyRememberedRevenueBudgets(); wireProjectAdders();
 }
-function wireFilters(){ $('periodFilter').onchange = e => { state.filters.period = e.target.value; renderAll(); }; if ($('asAtDateFilter')) $('asAtDateFilter').onchange = e => { state.filters.asAtDate = normaliseDate(e.target.value) || todayISO(); renderAll(); }; $('divisionFilter').onchange = e => { state.filters.division = e.target.value; renderAll(); }; $('managerFilter').onchange = e => { state.filters.manager = e.target.value; renderAll(); }; if ($('projectFilter')) $('projectFilter').onchange = e => { state.filters.project = e.target.value; renderAll(); }; $('searchFilter').oninput = e => { state.filters.search = e.target.value; renderAll(); }; }
+function wireFilters(){ $('periodFilter').onchange = e => { state.filters.period = e.target.value; renderAll(); }; if ($('asAtDateFilter')) $('asAtDateFilter').onchange = e => { state.filters.asAtDate = normaliseDate(e.target.value) || todayISO(); if ($('historySnapshotSelect')) $('historySnapshotSelect').dataset.selectedValue = state.filters.asAtDate; saveExecutiveHistorySnapshot(false); renderAll(); }; $('divisionFilter').onchange = e => { state.filters.division = e.target.value; renderAll(); }; $('managerFilter').onchange = e => { state.filters.manager = e.target.value; renderAll(); }; if ($('projectFilter')) $('projectFilter').onchange = e => { state.filters.project = e.target.value; renderAll(); }; $('searchFilter').oninput = e => { state.filters.search = e.target.value; renderAll(); }; }
 function monthlyStraightlineForRevenue(costCenter, manager, projectName, dateValue){ return monthlyStraightlineBudgetFor(costCenter, manager, projectName); }
-function init(){ bindTabs(); wireFilters(); wireProjectAdders(); wireExecutiveExports(); $('testBtn').onclick = () => quickConnectionTest(); $('refreshBtn').onclick = () => loadData(); $('saveRevenueBtn').onclick = saveRevenue; $('saveProjectBtn').onclick = saveProject; $('saveInvoiceBtn').onclick = saveInvoice; $('savePaymentBtn').onclick = savePaymentReceived; $('revDate').value = $('projCreatedAt').value = $('invDate').value = $('payDate').value = todayISO(); if ($('asAtDateFilter')) $('asAtDateFilter').value = normaliseDate(state.filters.asAtDate || todayISO()) || todayISO(); $('periodFilter').innerHTML = PERIODS.map(p=>`<option ${p===state.filters.period?'selected':''}>${p}</option>`).join(''); if ($('revProjectName')) $('revProjectName').addEventListener('change', applyRememberedRevenueBudgets); if ($('revManager')) $('revManager').addEventListener('change', applyRememberedRevenueBudgets); if ($('revCostCenter')) $('revCostCenter').addEventListener('change', applyRememberedRevenueBudgets); $('diagnostics').textContent = 'Waiting for first load...'; loadData(); }
+function init(){ state.filters.asAtDate = normaliseDate(state.filters.asAtDate || todayISO()) || todayISO(); bindTabs(); wireFilters(); wireProjectAdders(); wireExecutiveExports(); $('testBtn').onclick = () => quickConnectionTest(); $('refreshBtn').onclick = () => loadData(); $('saveRevenueBtn').onclick = saveRevenue; $('saveProjectBtn').onclick = saveProject; $('saveInvoiceBtn').onclick = saveInvoice; $('savePaymentBtn').onclick = savePaymentReceived; $('revDate').value = $('projCreatedAt').value = $('invDate').value = $('payDate').value = todayISO(); if ($('asAtDateFilter')) $('asAtDateFilter').value = normaliseDate(state.filters.asAtDate || todayISO()) || todayISO(); $('periodFilter').innerHTML = PERIODS.map(p=>`<option ${p===state.filters.period?'selected':''}>${p}</option>`).join(''); if ($('revProjectName')) $('revProjectName').addEventListener('change', applyRememberedRevenueBudgets); if ($('revManager')) $('revManager').addEventListener('change', applyRememberedRevenueBudgets); if ($('revCostCenter')) $('revCostCenter').addEventListener('change', applyRememberedRevenueBudgets); $('diagnostics').textContent = 'Waiting for first load...'; loadData(); }
 document.addEventListener('DOMContentLoaded', init);
 </script>
 </body>
